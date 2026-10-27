@@ -187,8 +187,9 @@ podem exigir pagamento e estão fora desta garantia de gratuidade.
    `worker/admin-container.js` e `wrangler.admin.jsonc` para a branch `main`.
 6. No GitHub, abra **Actions → Deploy Neris FastAPI Container → Run workflow**,
    selecione `main` e confirme **Run workflow**. O job executa os testes do
-   Worker e só então constrói/publica o Container e o Worker admin. O workflow
-   não publica o Worker de chat.
+   Worker, constrói/publica o Container e o Worker admin, e então configura os
+   secrets no Worker `neris-admin-api` usando `wrangler.admin.jsonc`. O workflow
+   não publica nem altera os secrets do Worker de chat.
 7. Após o job concluir, teste `https://admin.nexuscentralja.com.br/health` e
    confirme que `/` exige login do administrador. Verifique logs no GitHub
    Actions e no Cloudflare se o health check falhar.
