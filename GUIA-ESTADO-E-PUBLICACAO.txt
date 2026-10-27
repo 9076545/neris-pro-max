@@ -134,7 +134,8 @@ validos e confirmacao explicita dos dominios.
    neris.nexuscentralja.com.br
    chat.neris.nexuscentralja.com.br
    Se o Wrangler mostrar conflito de rota/DNS, pare. Nao substitua rotas Nexus.
-   O subdominio admin.neris.nexuscentralja.com.br fica fora desta edicao.
+   O subdominio admin.nexuscentralja.com.br e publicado separadamente pelo
+   workflow de Cloudflare Containers descrito no README.
 
 6. Para publicar, somente quando confirmar que aceita as limitacoes acima:
    npx wrangler deploy

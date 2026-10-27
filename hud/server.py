@@ -49,7 +49,7 @@ from neris_agentes.whatsapp_integration import (
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
 
-ADMIN_URL = os.getenv("NERIS_ADMIN_URL", "https://admin.neris.nexuscentralja.com.br")
+ADMIN_URL = os.getenv("NERIS_ADMIN_URL", "https://admin.nexuscentralja.com.br")
 ADMIN_EMAIL = os.getenv("NERIS_ADMIN_EMAIL", "").strip().casefold()
 logger = logging.getLogger(__name__)
 AGENT_NAME_BY_ID = {agent.id: agent.name for agent in AGENT_DEFINITIONS}

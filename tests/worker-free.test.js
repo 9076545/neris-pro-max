@@ -82,7 +82,7 @@ test("registry contains 44 distinct, addressable specialists", () => {
   assert.equal(new Set(AGENTS.map((agent) => agent.id)).size, 44);
   assert.equal(PRODUCT_SCOUT_SKILLS.length, 40);
   assert.equal(SOCIAL_MEDIA_SKILLS.length, 25);
-  assert.equal(INVESTMENT_ANALYST_SKILLS.length, 17);
+  assert.equal(INVESTMENT_ANALYST_SKILLS.length, 19);
   assert.ok(getAgent("agent-38").instruction.includes(PRODUCT_SCOUT_SKILLS.join("; ")));
   assert.ok(getAgent("agent-39").instruction.includes(SOCIAL_MEDIA_SKILLS.join("; ")));
   assert.ok(getAgent("agent-44").instruction.includes(INVESTMENT_ANALYST_SKILLS.join("; ")));
