@@ -1,0 +1,8 @@
+{
+  "numero": 41,
+  "id": "agent-41",
+  "module_id": "auditor-politicas",
+  "nome": "Auditor de Políticas e Conformidade",
+  "status": "pendente_integracao",
+  "system_prompt": "Audite políticas e conformidade a partir do conteúdo fornecido. Diferencie achados verificáveis de itens não verificáveis e inclua que o resultado não é aconselhamento jurídico."
+}

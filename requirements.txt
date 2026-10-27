@@ -1,0 +1,11 @@
+fastapi>=0.115
+httpx>=0.27
+pipecat-ai[deepgram,elevenlabs,openai,silero]>=0.0.105
+python-dotenv>=1.0
+supabase>=2.4
+aiomqtt>=2.3
+asyncua>=1.1
+pymodbus>=3.6
+uvicorn[standard]>=0.30
+websockets>=12
+artemis-client @ git+https://github.com/google/artemis.git@351ca8422f7b5b54e80a9c1ce03a222e02415b6b#subdirectory=packages/artemis-client

@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#080d15">
+    <meta name="description" content="CRM privado da Neris para organizar e analisar leads comerciais próprios.">
+    <title>CRM privado — Neris Pro Max</title>
+    <style>
+      :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: #080d15; color: #edf5ff; --muted: #aab8c9; --line: #ffffff21; --teal: #91eee4; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; background: radial-gradient(ellipse at 50% -10%, #12313a, transparent 55%), #080d15; }
+      a { color: var(--teal); text-decoration: none; }
+      .shell { width: min(960px, calc(100% - 32px)); margin: auto; }
+      header { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 15px; border-bottom: 1px solid var(--line); }
+      .brand { color: #fff; font-weight: 850; letter-spacing: .13em; }
+      main { padding: 42px 0 70px; }
+      h1 { margin: 10px 0; font-size: clamp(34px, 6vw, 56px); letter-spacing: -.055em; }
+      .muted, .fine { color: var(--muted); line-height: 1.65; }
+      .panel { margin-top: 22px; padding: clamp(18px, 4vw, 28px); border: 1px solid #8cece344; border-radius: 16px; background: #101925e8; }
+      .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      label { display: block; margin: 10px 0 7px; color: #d8e4f3; font-size: 13px; }
+      input { width: 100%; padding: 12px 13px; color: #fff; background: #080f18; border: 1px solid #526174; border-radius: 8px; font: inherit; }
+      .check { display: flex; align-items: start; gap: 9px; margin-top: 16px; color: var(--muted); font-size: 12px; line-height: 1.55; }
+      .check input { width: auto; margin-top: 3px; }
+      button { cursor: pointer; padding: 11px 15px; color: #071016; background: var(--teal); border: 0; border-radius: 8px; font: inherit; font-weight: 750; }
+      button.secondary { color: #eaf4ff; background: #1a2635; border: 1px solid var(--line); }
+      button:disabled { cursor: wait; opacity: .55; }
+      .actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+      .status { min-height: 1.5em; color: #a9f4d7; }
+      .error { color: #ffb5b5; }
+      .lead { padding: 14px 0; border-bottom: 1px solid var(--line); }
+      .lead strong { display: block; }
+      .lead small { display: block; margin: 5px 0 10px; color: var(--muted); }
+      .lead-result { margin: 10px 0; padding: 12px; border-left: 2px solid var(--teal); background: #0a141d; color: #d9e7f4; font-size: 13px; line-height: 1.6; white-space: pre-wrap; }
+      #auth[hidden], #application[hidden] { display: none; }
+      footer { padding: 22px 0; border-top: 1px solid var(--line); color: #8998aa; font-size: 12px; }
+      @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; gap: 0; } }
+    </style>
+  </head>
+  <body>
+    <header class="shell">
+      <a class="brand" href="https://neris.nexuscentralja.com.br/">✦ NERIS PRO MAX</a>
+      <nav><a href="https://chat.neris.nexuscentralja.com.br/">Chat</a> · <a href="https://neris.nexuscentralja.com.br/">Site</a></nav>
+    </header>
+    <main class="shell">
+      <div class="muted">CRM da sua conta · Área privada</div>
+      <h1>Seus leads, <span style="color:#91eee4">sob seu controle.</span></h1>
+      <p class="muted">Este CRM isola os contatos da sua conta. A análise oferece uma avaliação heurística explicada, não uma probabilidade comprovada. Nenhuma mensagem será enviada aos leads.</p>
+      <section id="auth" class="panel">
+        <h2>Entrar com sua conta Neris</h2>
+        <p class="fine">O CRM requer assinatura ativa Neris Pro, Neris 5.6 ou Neris Ultra Max.</p>
+        <form id="login-form">
+          <label for="email">E-mail</label><input id="email" type="email" autocomplete="username" required>
+          <label for="password">Senha</label><input id="password" type="password" autocomplete="current-password" required>
+          <div class="actions"><button id="login-button">Entrar</button><span id="auth-status" class="status" role="status"></span></div>
+        </form>
+      </section>
+      <section id="application" hidden>
+        <div class="panel">
+          <div class="actions" style="justify-content:space-between;margin-top:0">
+            <div><h2 style="margin:0">Adicionar contato comercial</h2><p class="fine">Armazene apenas dados necessários e autorizados.</p></div>
+            <button id="logout" class="secondary" type="button">Sair</button>
+          </div>
+          <form id="lead-form">
+            <div class="form-grid">
+              <div><label for="company">Empresa</label><input id="company" minlength="2" maxlength="160" required></div>
+              <div><label for="segment">Segmento</label><input id="segment" maxlength="120" required></div>
+              <div><label for="lead-email">E-mail (opcional)</label><input id="lead-email" type="email" maxlength="254"></div>
+              <div><label for="whatsapp">WhatsApp (opcional)</label><input id="whatsapp" type="tel" maxlength="40"></div>
+            </div>
+            <label class="check"><input id="consent" type="checkbox" required><span>Tenho autorização para armazenar estes dados neste CRM e usá-los para o propósito comercial informado. Isto não autoriza mensagens automáticas.</span></label>
+            <div class="actions"><button id="save-lead">Salvar lead</button><span id="lead-status" class="status" role="status"></span></div>
+          </form>
+        </div>
+        <div class="panel">
+          <div class="actions" style="justify-content:space-between;margin-top:0"><h2 style="margin:0">Sua carteira</h2><button id="refresh" class="secondary" type="button">Atualizar</button></div>
+          <div id="leads" class="fine">Carregando...</div>
+        </div>
+        <div class="panel">
+          <h2>Oportunidades de produto</h2>
+          <p class="fine">Use um catálogo, custos e vendas que você tem autorização para compartilhar. A análise não faz busca na web nem compra produtos.</p>
+          <form id="product-form">
+            <label for="product-objective">Objetivo</label><input id="product-objective" maxlength="2500" required placeholder="Ex.: encontrar produtos com giro e estoque saudável">
+            <label for="product-data">Dados do catálogo/resultado (opcional)</label><textarea id="product-data" maxlength="12000" rows="5" style="width:100%;padding:12px;color:#fff;background:#080f18;border:1px solid #526174;border-radius:8px;font:inherit"></textarea>
+            <div class="actions"><button id="product-submit">Analisar produtos</button></div>
+            <div id="product-result" class="lead-result" hidden role="status"></div>
+          </form>
+        </div>
+        <div class="panel">
+          <h2>Estratégia para redes sociais</h2>
+          <p class="fine">Gere pautas e rascunhos úteis com base nos objetivos e dados fornecidos. Nenhum conteúdo é publicado automaticamente.</p>
+          <form id="social-form">
+            <label for="social-objective">Objetivo e plataforma</label><input id="social-objective" maxlength="2500" required placeholder="Ex.: criar pauta de 2 semanas para Instagram">
+            <label for="social-data">Marca, público e resultados autorizados (opcional)</label><textarea id="social-data" maxlength="12000" rows="5" style="width:100%;padding:12px;color:#fff;background:#080f18;border:1px solid #526174;border-radius:8px;font:inherit"></textarea>
+            <div class="actions"><button id="social-submit">Criar estratégia</button></div>
+            <div id="social-result" class="lead-result" hidden role="status"></div>
+          </form>
+        </div>
+      </section>
+    </main>
+    <footer class="shell">Os dados comerciais são privados da conta autenticada. A Neris não dispara mensagens nem altera preços automaticamente.</footer>
+    <script>
+      (() => {
+        const byId = (id) => document.getElementById(id);
+        const state = { config: null, session: null, busy: false };
+        const status = (id, text, error = false) => {
+          byId(id).textContent = text;
+          byId(id).classList.toggle("error", error);
+        };
+        async function request(path, options = {}) {
+          const response = await fetch(path, {
+            ...options,
+            headers: {
+              authorization: `Bearer ${state.session.access_token}`,
+              ...(options.body ? { "content-type": "application/json" } : {}),
+              ...options.headers,
+            },
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(data.detail || data.message || data.error || `HTTP ${response.status}`);
+          return data;
+        }
+        function showSession(session) {
+          state.session = session;
+          if (session) sessionStorage.setItem("neris.crm.session", JSON.stringify(session));
+          else sessionStorage.removeItem("neris.crm.session");
+          byId("auth").hidden = Boolean(session);
+          byId("application").hidden = !session;
+        }
+        async function refreshLeads() {
+          const data = await request("/api/customer/leads?limit=100");
+          const container = byId("leads");
+          container.replaceChildren();
+          for (const lead of data.leads) {
+            const row = document.createElement("article");
+            row.className = "lead";
+            const title = document.createElement("strong");
+            title.textContent = lead.empresa_nome;
+            const details = document.createElement("small");
+            details.textContent = `${lead.segmento || "Sem segmento"} · ${lead.status_funil} · ${lead.contato_email || lead.contato_whatsapp || "Sem contato"}`;
+            const button = document.createElement("button");
+            button.className = "secondary";
+            button.type = "button";
+            button.textContent = "Analisar oportunidade";
+            const result = document.createElement("div");
+            result.className = "lead-result";
+            result.hidden = true;
+            button.addEventListener("click", async () => {
+              button.disabled = true;
+              result.hidden = false;
+              result.textContent = "Analisando dados comerciais fornecidos...";
+              try {
+                const analysis = await request(`/api/customer/leads/${encodeURIComponent(lead.id)}/analyze`, { method: "POST" });
+                result.textContent =
+                  `Índice de prontidão: ${analysis.heuristic_readiness_percent}% · Confiança ${analysis.confidence}\n` +
+                  `${analysis.advice}\n${analysis.warning}`;
+              } catch (error) {
+                result.textContent = error.message;
+              } finally {
+                button.disabled = false;
+              }
+            });
+            row.append(title, details, button, result);
+            container.append(row);
+          }
+          if (!data.leads.length) container.textContent = "Ainda não há leads na sua carteira.";
+        }
+        byId("login-form").addEventListener("submit", async (event) => {
+          event.preventDefault();
+          if (!state.config?.supabase_url || !state.config?.supabase_anon_key) {
+            status("auth-status", "A autenticação ainda não foi configurada.", true);
+            return;
+          }
+          byId("login-button").disabled = true;
+          status("auth-status", "Validando acesso...");
+          try {
+            const response = await fetch(`${state.config.supabase_url}/auth/v1/token?grant_type=password`, {
+              method: "POST",
+              headers: { apikey: state.config.supabase_anon_key, "content-type": "application/json" },
+              body: JSON.stringify({ email: byId("email").value.trim(), password: byId("password").value }),
+            });
+            const result = await response.json();
+            if (!response.ok || !result.access_token) throw new Error(result.msg || result.message || "Não foi possível entrar.");
+            showSession({ access_token: result.access_token, refresh_token: result.refresh_token, user: result.user });
+            byId("password").value = "";
+            await refreshLeads();
+          } catch (error) {
+            showSession(null);
+            status("auth-status", error.message, true);
+          } finally {
+            byId("login-button").disabled = false;
+          }
+        });
+        byId("lead-form").addEventListener("submit", async (event) => {
+          event.preventDefault();
+          byId("save-lead").disabled = true;
+          status("lead-status", "Salvando...");
+          try {
+            await request("/api/customer/leads", {
+              method: "POST",
+              body: JSON.stringify({
+                company_name: byId("company").value.trim(),
+                segment: byId("segment").value.trim(),
+                email: byId("lead-email").value.trim() || null,
+                whatsapp: byId("whatsapp").value.trim() || null,
+                consent: byId("consent").checked,
+              }),
+            });
+            byId("lead-form").reset();
+            status("lead-status", "Lead salvo na sua carteira privada.");
+            await refreshLeads();
+          } catch (error) {
+            status("lead-status", error.message, true);
+          } finally {
+            byId("save-lead").disabled = false;
+          }
+        });
+        byId("refresh").addEventListener("click", () => refreshLeads().catch((error) => status("lead-status", error.message, true)));
+        async function submitSpecialist(formId, resultId, buttonId, endpoint, objectiveId, dataId) {
+          byId(formId).addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const button = byId(buttonId);
+            const output = byId(resultId);
+            button.disabled = true;
+            output.hidden = false;
+            output.textContent = "A Neris está analisando...";
+            try {
+              const result = await request(endpoint, {
+                method: "POST",
+                body: JSON.stringify({
+                  objective: byId(objectiveId).value.trim(),
+                  data: byId(dataId).value.trim(),
+                }),
+              });
+              output.textContent = result.analysis;
+            } catch (error) {
+              output.textContent = error.message;
+            } finally {
+              button.disabled = false;
+            }
+          });
+        }
+        submitSpecialist(
+          "product-form", "product-result", "product-submit",
+          "/api/customer/agents/product-scout", "product-objective", "product-data",
+        );
+        submitSpecialist(
+          "social-form", "social-result", "social-submit",
+          "/api/customer/agents/social-strategy", "social-objective", "social-data",
+        );
+        byId("logout").addEventListener("click", () => {
+          showSession(null);
+          byId("leads").textContent = "Entre para visualizar seus leads.";
+        });
+        fetch("/api/config", { cache: "no-store" })
+          .then((response) => {
+            if (!response.ok) throw new Error("Não foi possível carregar a configuração.");
+            return response.json();
+          })
+          .then(async (config) => {
+            state.config = config;
+            try {
+              const saved = sessionStorage.getItem("neris.crm.session");
+              if (saved) showSession(JSON.parse(saved));
+              if (state.session) await refreshLeads();
+            } catch (error) {
+              status("lead-status", error.message, true);
+            }
+          })
+          .catch((error) => status("auth-status", error.message, true));
+      })();
+    </script>
+  </body>
+</html>

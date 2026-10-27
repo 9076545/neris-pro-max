@@ -1,0 +1,206 @@
+NERIS PRO MAX — ESTADO REAL, CHAVES E PLANO DE PUBLICACAO
+Atualizado em 20/10/2026
+
+IMPORTANTE
+Este arquivo separa o que existe no codigo daquilo que ja funciona online.
+No momento desta revisao, nao ha confirmacao verificavel de deploy de producao.
+O deploy foi interrompido/nao confirmado. Nao divulgue os enderecos como ativos
+ate que um deploy apareca no Cloudflare e os testes publicos passem.
+
+1. RESPOSTA DIRETA: TUDO ESTA PRONTO?
+
+Nao. A Neris Chat e o site foram desenvolvidos, mas nao posso afirmar que todo o
+projeto pedido esteja concluido, online ou plenamente funcional.
+
+- O Worker tem um catalogo de 39 perfis especialistas, selecao manual e
+  encaminhamento automatico por tema. Cada mensagem passa por um modelo
+  especialista Workers AI e depois pelo modelo principal Workers AI.
+- Esses 39 perfis sao instrucoes usadas sob demanda, nao 39 processos sempre
+  ativos nem uma colmeia autonoma. As 40 skills de produto e 25 skills sociais
+  estao incorporadas aos dois perfis correspondentes; nao sao conexoes a
+  ferramentas, lojas ou redes sociais.
+- O Supabase e banco/autenticacao, nao o segundo modelo de IA. Os dois modelos
+  desta edicao sao modelos Workers AI distintos; isso nao conecta Nexus Plus.
+- NerisBrain no Python coordena Workers AI com busca de memoria pgvector e uma
+  ponte Nexus Plus Graph RAG opcional. A ponte exige endpoint e token validos.
+  Ela nao esta conectada ao chat Worker atual. O Worker tem dois modelos
+  Workers AI, mas nao a memoria pgvector nem Nexus Plus.
+- Os agentes do Worker nao fazem pesquisa ao vivo nem acessam contas externas.
+  Eles analisam apenas o pedido e os dados que o usuario fornecer.
+- Voz ElevenLabs, CRM, HUD administrativo, leads, geracao de projetos, integra-
+  coes Shopify/Meta/WEG/ARTEMIS e WhatsApp dependem de chaves e/ou do backend.
+  Alguns nao funcionam no Worker gratuito atualmente.
+- Cada mensagem do chat consome duas inferencias Workers AI e, por isso, usa a
+  cota diaria mais rapidamente. A resposta final inclui o especialista e os
+  modelos usados.
+- Planos e creditos exibidos sao configuracao/proposta; isso nao ativa checkout,
+  pagamento nem garante niveis de inteligencia diferentes. O Worker usa o mesmo
+  modelo configurado para todas as contas.
+- Nenhuma IA pode ser garantida como "maior que" ChatGPT, Claude ou outros
+  modelos. Isso depende do modelo contratado, avaliacao comparativa e custos.
+  Nao ha autoevolucao autonoma validada: agentes nao treinam nem alteram a si
+  mesmos pelo uso normal.
+
+2. O QUE A EDICAO GRATUITA DO WORKER PODE PUBLICAR
+
+Pode servir arquivos HTML/CSS/JS e executar rotas Worker leves. A configuracao
+atual foi removida de Containers/Durable Objects; ela nao deve pedir Workers
+Paid para essas capacidades. O chat pode usar o binding Workers AI, sujeito a
+limites diarios e a disponibilidade do modelo.
+
+Limites consultados na documentacao Cloudflare em 20/10/2026:
+- Workers Free: ate 100.000 requisicoes por dia; CPU limitado por chamada.
+- Workers AI Free: 10.000 Neurons por dia. O excedente nao e gratuito; no plano
+  Free, as operacoes deixam de funcionar quando a cota acaba.
+- Workers Paid e Containers nao foram ativados nem fazem parte dos passos
+  gratuitos.
+- Supabase Free e um servico separado; a documentacao informa 500 MB e pausa de
+  projetos inativos apos uma semana. Confirme limites e estado no dashboard.
+- ElevenLabs, Deepgram e APIs de terceiros podem cobrar. Nao ha garantia de custo
+  total zero quando essas integracoes sao usadas.
+
+Rotas de projetos, leads e CRM retornam erro explicito de recurso indisponivel
+no Free; o HUD admin nao e publicado. A interface deve identificar esses
+recursos como indisponiveis, sem sugerir que o envio de formularios funciona.
+
+3. CHAVES NECESSARIAS PARA O CHAT
+
+Obrigatorias para login, cotas e persistencia:
+
+A) SUPABASE_URL
+Valor publico do projeto Supabase Neris:
+https://zxgftvyyexrsxroqgbkn.supabase.co
+Este valor esta no wrangler.jsonc como variavel nao secreta. O .env local atual
+aponta para outro projeto e nao deve ser copiado para producao.
+
+B) SUPABASE_ANON_KEY (ou publishable key, se suportada pela configuracao)
+Obtenha no dashboard do projeto Supabase Neris:
+Project Settings > API Keys. Use a chave publica anon/publishable do projeto
+zxgftvyyexrsxroqgbkn. Nao use service_role/secret key no navegador nem como chave
+publica. O arquivo .env desta pasta nao contem uma chave anon utilizavel.
+
+Cadastro seguro no Worker, apos autenticar Wrangler:
+  npx wrangler secret put SUPABASE_ANON_KEY --name neris-pro-max-chat
+Cole o valor no prompt interativo do terminal, nunca no chat. SUPABASE_URL ja
+esta no wrangler.jsonc; se preferir cadastra-lo como secret, remova primeiro a
+variavel duplicada do wrangler.jsonc para evitar conflito.
+
+Workers AI usa o binding AI configurado no Wrangler; nao precisa de API key
+Cloudflare dentro do Worker para essa chamada. A autenticacao Wrangler/OAuth
+serve para publicar, nao para o chat dos usuarios.
+
+NAO CADASTRAR PARA O DEPLOY FREE DO CHAT:
+- SUPABASE_SERVICE_ROLE_KEY: nao e necessaria pelo Worker do chat e tem poder
+  administrativo; jamais enviar ao HTML, GitHub ou chat.
+- CLOUDFLARE_API_TOKEN: nao e necessario para o binding Workers AI. OAuth Wrangler
+  e preferivel para deploy. Um CLOUDFLARE_API_TOKEN local invalido causou erro de
+  autenticacao anteriormente; mantenha segredos locais fora do repositorio.
+- NEXUS_SUPABASE_URL e NEXUS_SUPABASE_ANON_KEY: necessarias para login do HUD
+  FastAPI; NEXUS_OFFICE_API_URL habilita o feed de eventos Nexus. Configure-as
+  somente no ambiente privado do backend. A autenticacao usa a conta autorizada
+  no Supabase, nao um token administrativo estatico.
+- ElevenLabs, Deepgram, Meta, Shopify, WEG, ARTEMIS e Nexus Plus: opcionais,
+  dependem de ativacao consciente, permissao, integracao e custos/limites externos.
+
+4. PASSO A PASSO PARA PUBLICAR O WORKER FREE (SO DEPOIS DE DECIDIR O ESCOPO)
+
+O deploy publica o chat Worker com 39 perfis sob demanda e duas inferencias
+Workers AI. Isso nao publica o backend Python, Nexus Plus, CRM, leads, projetos
+ou conectores pendentes. O deploy de producao continua sujeito a testes, segredos
+validos e confirmacao explicita dos dominios.
+
+1. Abra o projeto no terminal:
+   cd "C:\Users\anacy\Downloads\Nexus-Voz-Desempenho-13-10\neris_pro_max"
+
+2. Confirme que o Wrangler usa OAuth da conta correta:
+   npx wrangler whoami
+   Nao cole tokens. O .env local tem um CLOUDFLARE_API_TOKEN que foi rejeitado
+   pelo Wrangler. Para usar o OAuth ja autorizado, comente temporariamente
+   somente essa linha do .env; nao apague nem compartilhe outros segredos.
+   Depois repita `npx wrangler whoami`.
+
+3. Obtenha a chave publica no Supabase em Project Settings > API Keys. Guarde-a
+   para o passo posterior ao primeiro deploy. O secret put exige que o Worker
+   ja exista.
+
+4. Verifique o build antes de publicar:
+   node --check worker\index.js
+   npx wrangler deploy --dry-run
+   Confirme que o resumo nao lista containers, Durable Objects ou uma chave
+   service-role.
+
+5. Verifique que os dois custom domains nao estao ligados a um Worker Nexus
+   existente. O wrangler.jsonc inclui apenas:
+   neris.nexuscentralja.com.br
+   chat.neris.nexuscentralja.com.br
+   Se o Wrangler mostrar conflito de rota/DNS, pare. Nao substitua rotas Nexus.
+   O subdominio admin.neris.nexuscentralja.com.br fica fora desta edicao.
+
+6. Para publicar, somente quando confirmar que aceita as limitacoes acima:
+   npx wrangler deploy
+   Leia os recursos e dominios que o Wrangler vai modificar antes de confirmar.
+   Isso cria o Worker e pode associar os dois custom domains. O login/chat ainda
+   precisam da chave Supabase no passo seguinte.
+
+7. Cadastre a chave Supabase no Worker criado:
+   npx wrangler secret put SUPABASE_ANON_KEY --name neris-pro-max-chat
+   Cole o valor somente no prompt interativo do terminal.
+
+8. Valide apos o deploy:
+   https://neris.nexuscentralja.com.br/health
+   https://chat.neris.nexuscentralja.com.br/health
+   Depois teste login, chat, cotas e persistencia com uma conta de teste.
+   Teste tambem que projetos/leads/CRM retornam indisponibilidade e nao fingem
+   sucesso. Observe Workers AI no painel; quando a cota gratis diaria acabar, o
+   chat pode parar de responder ate o reset.
+
+5. O QUE OS 39 PERFIS E OS DOIS MODELOS FAZEM
+
+O Worker pode listar os 39 perfis, encaminhar uma pergunta automaticamente ou
+aceitar um perfil escolhido. Para cada mensagem, o modelo especialista produz
+uma analise e o modelo principal a revisa/sintetiza. Isso foi validado em teste
+local; nao prova disponibilidade de inferencia na conta Cloudflare nem deploy
+de producao. Os perfis nao sao processos autonomos em segundo plano.
+
+As duas inferencias usam a cota Workers AI Free e podem deixar de responder
+quando a cota terminar. O segundo modelo nao e Nexus Plus, ChatGPT, Claude nem
+uma promessa de superioridade. O chat tambem nao acessa Google, Shopify, Meta,
+WEG, oculos Meta ou Nexus Plus. A memoria/Graph RAG do NerisBrain Python continua
+fora deste Worker.
+
+CRM, leads, HUD admin, geracao de projetos, Shopify, Meta, WEG, ARTEMIS e
+WhatsApp continuam pendentes nesta edicao e nao devem ser anunciados como
+funcionais. Voz requer configuracao valida de provedor externo e pode ter custo.
+
+Nao existe promessa honesta de 39 workers sempre ativos nem de zero custo para
+todos os agentes, voz e chamadas externas em um plano Free. Comece com invocacao
+sob demanda e limites rigidos; monitore consumo. Servicos gratuitos de terceiros
+podem ter cotas, suspensao por inatividade, mudancas de termos ou deixar de
+oferecer Free.
+
+6. ESTADO DO GIT E SEGREDOS
+
+- Existe um repositorio Git local em neris_pro_max, ainda sem commit confirmado.
+- O repositorio GitHub privado 9076545/neris-pro-max foi criado anteriormente,
+  mas nao foi confirmado o envio do conteudo. A autenticacao local GitHub ainda
+  precisa ser configurada se for usar Workers Builds.
+- .env esta listado em .gitignore e nao deve ser versionado.
+- Nenhum segredo deve ser escrito no HTML, no README, em commit, screenshot ou
+  mensagem de chat. Se uma chave real foi exposta, revogue-a no provedor e crie
+  outra.
+
+7. RESUMO PARA DECISAO
+
+Publicar agora pode deixar online o site e um chat limitado com 39 perfis sob
+demanda e dois modelos Workers AI, mas NAO entrega o produto completo descrito
+no prompt, nao ativa Nexus Plus, CRM, projetos, leads ou admin automaticamente.
+
+Para cumprir a exigencia de "tudo funcionando antes do deploy", o proximo trabalho
+e migrar e testar as APIs e integracoes pendentes, validar configuracoes reais e
+credenciais nos dashboards e testar o chat em uma conta Cloudflare autorizada.
+Somente depois deve ser feito um deploy de producao.
+
+REFERENCIAS DE PRECOS CONSULTADAS
+Cloudflare Workers: https://developers.cloudflare.com/workers/platform/pricing/
+Cloudflare Workers AI: https://developers.cloudflare.com/workers-ai/platform/pricing/
+Supabase: https://supabase.com/pricing

@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#070b12">
+    <meta name="description" content="Conheça a Neris Pro Max: chat com dois modelos Workers AI e 39 perfis especialistas sob demanda.">
+    <title>Neris Pro Max — inteligência para construir</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+        color: #edf5ff;
+        background: #070b12;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        --muted: #a7b5c7;
+        --teal: #8df2e4;
+        --line: #ffffff20;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        min-width: 320px;
+        min-height: 100vh;
+        overflow-x: hidden;
+        background:
+          radial-gradient(ellipse at 78% 23%, #0b6b7540, transparent 32rem),
+          radial-gradient(ellipse at 12% 58%, #28205a40, transparent 36rem),
+          #070b12;
+      }
+      a { color: inherit; text-decoration: none; }
+      .shell { width: min(1160px, calc(100% - 40px)); margin-inline: auto; }
+      .topbar { height: 76px; border-bottom: 1px solid var(--line); }
+      .nav { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+      .brand { font-size: 12px; font-weight: 850; letter-spacing: .17em; white-space: nowrap; }
+      .brand-mark { color: var(--teal); font-size: 22px; vertical-align: -2px; margin-right: 8px; }
+      .links { display: flex; gap: 28px; color: #c2cddd; font-size: 13px; }
+      .links a:hover, footer a:hover { color: var(--teal); }
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 46px;
+        padding: 0 20px;
+        border: 1px solid #9af2e6;
+        border-radius: 8px;
+        color: #061115;
+        background: linear-gradient(110deg, #9af2e6, #9dc7ff);
+        font-size: 13px;
+        font-weight: 800;
+        box-shadow: 0 10px 35px #50e6d31c;
+        transition: transform .2s ease, box-shadow .2s ease;
+      }
+      .button:hover { transform: translateY(-2px); box-shadow: 0 14px 42px #50e6d33d; }
+      .button.secondary { color: #eaf4ff; background: #0d1723; border-color: #ffffff35; box-shadow: none; }
+      .hero { display: grid; grid-template-columns: 1.05fr .95fr; align-items: center; gap: 30px; min-height: 650px; padding-block: 70px; }
+      .eyebrow { color: var(--teal); font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+      h1 { max-width: 700px; margin: 22px 0; font-size: clamp(48px, 7vw, 82px); line-height: .99; letter-spacing: -.07em; }
+      .gradient { color: transparent; background: linear-gradient(100deg, #9bf4e7, #a3c3ff 64%, #d5a8ff); background-clip: text; }
+      .lead { max-width: 560px; color: #b6c3d2; font-size: 17px; line-height: 1.75; }
+      .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+      .note { max-width: 510px; margin-top: 22px; color: #8494a8; font-size: 12px; line-height: 1.7; }
+      .stage { position: relative; display: grid; place-items: center; min-height: 480px; perspective: 950px; isolation: isolate; }
+      .glow { position: absolute; width: 340px; aspect-ratio: 1; border-radius: 50%; background: #26dcca24; filter: blur(48px); animation: pulse 5s ease-in-out infinite alternate; }
+      .orbital { position: absolute; width: min(100%, 420px); aspect-ratio: 1; border: 1px solid #91eee438; border-radius: 50%; transform: rotateX(68deg) rotateZ(-22deg); animation: orbit 24s linear infinite; }
+      .orbital::before, .orbital::after { content: ""; position: absolute; inset: 13%; border: 1px solid #b89bff35; border-radius: inherit; transform: rotate(65deg); }
+      .orbital::after { inset: 25%; border-color: #91eee433; transform: rotate(-48deg); }
+      .core {
+        position: relative;
+        width: clamp(190px, 27vw, 285px);
+        aspect-ratio: 1;
+        border: 1px solid #c4fff18c;
+        border-radius: 38% 62% 57% 43% / 45% 42% 58% 55%;
+        background:
+          radial-gradient(circle at 36% 30%, #c9fff580, transparent 15%),
+          radial-gradient(ellipse at 38% 30%, #5df2e8, #11536b 39%, #171435 74%, #080c16);
+        box-shadow: inset -25px -25px 65px #03050aa6, inset 12px 10px 36px #c5fff14a, 0 0 75px #42e9dc55;
+        transform-style: preserve-3d;
+        animation: morph 9s ease-in-out infinite, float 6s ease-in-out infinite;
+      }
+      .core::before, .core::after { content: ""; position: absolute; inset: 13%; border: 1px solid #c3fff180; border-radius: inherit; transform: translateZ(38px) rotate(26deg); }
+      .core::after { inset: 28%; border-color: #b4a5ffab; transform: translateZ(58px) rotate(-41deg); }
+      .tag {
+        position: absolute;
+        padding: 10px 13px;
+        border: 1px solid #b6fff33b;
+        border-radius: 7px;
+        color: #dffdfa;
+        background: #08131bd9;
+        box-shadow: 0 8px 30px #0005;
+        font-size: 10px;
+        font-weight: 750;
+        letter-spacing: .11em;
+        animation: drift 5s ease-in-out infinite;
+      }
+      .tag.one { top: 16%; left: 2%; }
+      .tag.two { top: 28%; right: -1%; animation-delay: -2s; }
+      .tag.three { right: 8%; bottom: 15%; animation-delay: -3s; }
+      .section { padding-block: 82px; border-top: 1px solid var(--line); }
+      .section-heading { max-width: 730px; margin-bottom: 30px; }
+      h2 { margin: 14px 0; font-size: clamp(34px, 5vw, 54px); letter-spacing: -.055em; line-height: 1.05; }
+      .section-heading p, .card p { color: var(--muted); line-height: 1.7; }
+      .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+      .card { min-height: 180px; padding: 24px; border: 1px solid var(--line); border-radius: 12px; background: linear-gradient(145deg, #111a27, #0b111a); }
+      .feature-banner { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-top: 18px; padding: 15px 18px; border: 1px solid #8df2e477; border-radius: 10px; background: linear-gradient(100deg, #10303a99, #17132a); }
+      .feature-banner p { color: #d3e6ef; font-size: 13px; line-height: 1.6; }
+      .feature-banner strong { color: var(--teal); }
+      .integration-state { display: inline-block; margin-top: 14px; padding: 5px 8px; border: 1px solid #ffffff2e; border-radius: 6px; color: #d0d9e5; font-size: 10px; letter-spacing: .04em; }
+      .integration-state.available { border-color: #55e5bf88; color: #9af2e6; }
+      .coming-soon { padding: 20px 24px; border: 1px solid #b89bff55; border-radius: 12px; background: linear-gradient(110deg, #141b31, #151126); }
+      .coming-soon h3 { margin: 0 0 7px; }
+      .coming-soon p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.7; }
+      .integration-list { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 24px; }
+      .integration-list span { padding: 8px 11px; border: 1px solid var(--line); border-radius: 7px; color: #d2deeb; background: #0c141f; font-size: 12px; }
+      .status-note { margin-top: 18px; font-size: 12px; }
+      .icon { color: var(--teal); font-size: 22px; }
+      h3 { margin: 16px 0 8px; font-size: 17px; }
+      .card p { margin: 0; font-size: 13px; }
+      .plans { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+      .plan { padding: 20px; border: 1px solid var(--line); border-radius: 12px; background: #0c141f; }
+      .plan.featured { border-color: #8df2e4a0; box-shadow: 0 0 38px #35e3cf14; }
+      .plan h3 { margin-top: 0; }
+      .price { margin: 12px 0; font-size: 27px; font-weight: 850; }
+      .price small { color: var(--muted); font-size: 11px; font-weight: 500; }
+      .plan p { min-height: 54px; color: var(--muted); font-size: 12px; line-height: 1.55; }
+      .plan .button { width: 100%; min-height: 40px; padding-inline: 8px; font-size: 11px; }
+      .closing { display: flex; align-items: center; justify-content: space-between; gap: 28px; padding: 34px; border: 1px solid #91eee438; border-radius: 15px; background: linear-gradient(110deg, #10303a99, #18142b99); }
+      .closing h2 { margin: 0; font-size: clamp(26px, 4vw, 42px); }
+      footer { margin-top: 76px; padding-block: 24px; border-top: 1px solid var(--line); color: #8a99ab; font-size: 12px; }
+      .footer-inner { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+      @keyframes float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -13px; } }
+      @keyframes orbit { to { transform: rotateX(68deg) rotateZ(338deg); } }
+      @keyframes morph { 0%, 100% { border-radius: 38% 62% 57% 43% / 45% 42% 58% 55%; } 50% { border-radius: 58% 42% 39% 61% / 52% 60% 40% 48%; } }
+      @keyframes pulse { to { opacity: .55; transform: scale(1.12); } }
+      @keyframes drift { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
+      @media (max-width: 820px) { .links { display: none; } .hero { grid-template-columns: 1fr; padding-top: 65px; } .stage { min-height: 390px; } .grid { grid-template-columns: repeat(2, 1fr); } }
+      @media (max-width: 820px) { .plans { grid-template-columns: repeat(2, 1fr); } }
+      @media (max-width: 560px) { .shell { width: calc(100% - 28px); } .topbar { height: 66px; } .nav > .button { min-height: 38px; padding-inline: 12px; font-size: 11px; } .hero { min-height: auto; padding-block: 60px 30px; } .lead { font-size: 15px; } .stage { min-height: 330px; } .orbital { width: 300px; } .tag { font-size: 8px; } .grid, .plans { grid-template-columns: 1fr; } .card { min-height: 150px; } .plan p { min-height: 0; } .closing { align-items: flex-start; flex-direction: column; padding: 24px; } .feature-banner { align-items: flex-start; flex-direction: column; } .section { padding-block: 62px; } }
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="shell nav">
+        <a class="brand" href="/" aria-label="Neris Pro Max, página inicial"><span class="brand-mark">✦</span>NERIS PRO MAX</a>
+        <nav class="links" aria-label="Navegação principal"><a href="#recursos">Capacidades</a><a href="#ecossistema">Próximos recursos</a><a href="https://wa.me/5579981483630?text=Ol%C3%A1%2C%20quero%20conhecer%20a%20Neris%20Pro%20Max." target="_blank" rel="noopener noreferrer">Fale com a Central JA</a></nav>
+        <a class="button" href="https://chat.neris.nexuscentralja.com.br/">Entrar no chat <span aria-hidden="true">↗</span></a>
+      </div>
+    </header>
+    <main>
+      <section class="shell feature-banner" aria-label="Novidades Neris Pro Max">
+        <p><strong>Neris Pro Max</strong><br>Conheça o que já pode experimentar no chat e descubra o que estamos preparando para os próximos passos.</p>
+        <a class="button secondary" href="#recursos">Explore os recursos</a>
+      </section>
+      <section class="shell hero">
+        <div>
+          <div class="eyebrow">Chat com dois modelos · 39 perfis especialistas</div>
+          <h1><span class="gradient">Mais clareza.</span><br>Mais possibilidades.</h1>
+          <p class="lead">Converse com a Neris Pro Max: escolha um especialista ou deixe a Neris encaminhar sua ideia. Dois modelos de IA trabalham na resposta para ajudar você a pensar no próximo passo.</p>
+          <div class="actions"><a class="button" href="https://chat.neris.nexuscentralja.com.br/">Experimentar o chat <span aria-hidden="true">→</span></a><a class="button secondary" href="https://wa.me/5579981483630?text=Ol%C3%A1%2C%20quero%20conhecer%20a%20Neris%20Pro%20Max." target="_blank" rel="noopener noreferrer">Falar com a Central JA</a></div>
+          <p class="note">Novas contas elegíveis começam com 7 dias de acesso Pro ao chat, sem cobrança automática. Depois, a conta retorna ao plano gratuito; cotas e disponibilidade do serviço se aplicam.</p>
+          <p class="note">A disponibilidade do chat depende da publicação do serviço, da configuração da conta e das cotas dos provedores.</p>
+        </div>
+        <div class="stage" aria-label="Visualização abstrata tridimensional da Neris" role="img">
+          <div class="glow"></div><div class="orbital"></div><div class="core"></div>
+          <span class="tag one">NERIS CORE</span><span class="tag two">INTELIGÊNCIA MULTIMODAL</span><span class="tag three">IDEIAS EM MOVIMENTO</span>
+        </div>
+      </section>
+      <section class="section" id="capacidades">
+        <div class="shell">
+          <div class="section-heading"><div class="eyebrow">Disponível para experimentar</div><h2>Uma conversa.<br><span class="gradient">39 formas de pensar.</span></h2><p>Comece por uma pergunta, escolha um perfil especialista e conduza a conversa no seu ritmo. Os especialistas são perfis acionados sob demanda, não processos autônomos em execução contínua.</p></div>
+          <div class="grid">
+            <article class="card"><div class="icon">⌁</div><h3>Conversa com dois modelos</h3><p>Um modelo especialista analisa sua solicitação e outro revisa a resposta final em português.</p><span class="integration-state available">No chat Neris</span></article>
+            <article class="card"><div class="icon">◇</div><h3>39 perfis sob demanda</h3><p>Explore especialidades e roteamento por tema para organizar ideias, análises e tarefas.</p><span class="integration-state available">No chat Neris</span></article>
+            <article class="card"><div class="icon">◉</div><h3>Chat com conta</h3><p>O acesso exige autenticação e depende das cotas e da disponibilidade do serviço.</p><span class="integration-state available">Acessar chat</span></article>
+          </div>
+        </div>
+      </section>
+      <section class="section" id="recursos">
+        <div class="shell">
+          <div class="section-heading"><div class="eyebrow">O próximo capítulo da Neris</div><h2>Estamos preparando novas possibilidades.</h2><p>Em breve, vou te surpreender. Fale com a Central JA para acompanhar novidades.</p></div>
+          <a class="button secondary" href="#ecossistema">Ver o que vem por aí</a>
+        </div>
+      </section>
+      <section class="section" id="ecossistema">
+        <div class="shell">
+          <div class="section-heading"><div class="eyebrow">Em desenvolvimento</div><h2>O que vem por aí?<br><span class="gradient">Em breve, vou te surpreender.</span></h2><p>Essas integrações ainda não estão disponíveis no chat público. Estamos preparando novas conexões; fale com a Central JA para acompanhar novidades.</p></div>
+          <div class="grid">
+            <article class="card"><div class="icon">◉</div><h3>Visão com Óculos Meta</h3><p>Assistência multimodal e hands-free, conectando contexto visual a novas formas de interação.</p><span class="integration-state">Em breve, vou te surpreender</span></article>
+            <article class="card"><div class="icon">✦</div><h3>Módulo ARTEMIS</h3><p>Análise e automação assistida para fluxos autorizados, com confirmação antes de executar.</p><span class="integration-state">Em breve, vou te surpreender</span></article>
+            <article class="card"><div class="icon">⌘</div><h3>Nexus Plus · RAG</h3><p>Conhecimento contextual com busca conectada a dados, pgvector e Graph RAG.</p><span class="integration-state">Em breve, vou te surpreender</span></article>
+            <article class="card"><div class="icon">▤</div><h3>CRM, leads e projetos</h3><p>Fluxos para acompanhar oportunidades e levar briefings da ideia à execução.</p><span class="integration-state">Em breve, vou te surpreender</span></article>
+            <article class="card"><div class="icon">◌</div><h3>Meta, WhatsApp e Shopify</h3><p>Novas possibilidades de atendimento, catálogo e conexão com seus canais.</p><span class="integration-state">Em breve, vou te surpreender</span></article>
+            <article class="card"><div class="icon">♫</div><h3>Voz e outras integrações</h3><p>Experiências de voz e conexões adicionais para tornar a interação mais natural.</p><span class="integration-state">Em breve, vou te surpreender</span></article>
+          </div>
+          <p class="status-note"><a class="button secondary" href="https://wa.me/5579981483630?text=Ol%C3%A1%2C%20quero%20saber%20das%20novidades%20da%20Neris%20Pro%20Max." target="_blank" rel="noopener noreferrer">Quero saber das novidades pelo WhatsApp</a></p>
+        </div>
+      </section>
+      <section class="shell">
+        <div class="closing"><div><div class="eyebrow">Sua próxima ideia começa aqui</div><h2>Descubra o que a Neris pode conectar.</h2></div><div class="actions"><a class="button" href="https://chat.neris.nexuscentralja.com.br/">Experimentar o chat <span aria-hidden="true">↗</span></a><a class="button secondary" href="https://wa.me/5579981483630?text=Ol%C3%A1%2C%20quero%20conversar%20sobre%20a%20Neris%20Pro%20Max." target="_blank" rel="noopener noreferrer">Chamar no WhatsApp</a></div></div>
+      </section>
+    </main>
+    <footer><div class="shell footer-inner"><span>© Neris Pro Max · Nexus Central JA</span><span><a href="https://chat.neris.nexuscentralja.com.br/">Chat</a> · <a href="https://wa.me/5579981483630?text=Ol%C3%A1%2C%20quero%20conhecer%20a%20Neris." target="_blank" rel="noopener noreferrer">WhatsApp Central JA</a></span></div></footer>
+  </body>
+</html>

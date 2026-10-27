@@ -1,0 +1,1 @@
+"""Neris Pro Max tests."""

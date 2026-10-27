@@ -1,0 +1,10 @@
+{
+  "name": "neris-pro-max-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:worker": "node --test tests/worker-free.test.js",
+    "deploy:dry-run": "wrangler deploy --dry-run",
+    "deploy": "wrangler deploy"
+  }
+}

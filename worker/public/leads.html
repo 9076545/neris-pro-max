@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#080d15">
+    <title>Fale com a Neris Pro Max</title>
+    <style>
+      :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: #080d15; color: #edf5ff; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; background: radial-gradient(ellipse at 50% -10%, #12313a, transparent 55%), #080d15; }
+      a { color: #9cf4eb; text-decoration: none; }
+      .shell { width: min(760px, calc(100% - 32px)); margin: auto; }
+      header { height: 76px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #ffffff1a; }
+      .brand { font-weight: 800; letter-spacing: .13em; color: #fff; }
+      .brand span, .gradient { color: #8cece3; }
+      main { padding: 58px 0; }
+      h1 { margin: 0; font-size: clamp(36px, 7vw, 62px); letter-spacing: -.055em; }
+      .intro, .fine { color: #aab8c9; line-height: 1.65; }
+      .panel { margin-top: 26px; padding: clamp(20px, 4vw, 34px); border: 1px solid #8cece344; border-radius: 20px; background: #101925e8; box-shadow: 0 24px 90px #0005; }
+      label { display: block; margin: 15px 0 7px; color: #d8e4f3; font-size: 14px; }
+      input { width: 100%; padding: 13px 14px; color: #fff; background: #080f18; border: 1px solid #526174; border-radius: 9px; font: inherit; }
+      button { cursor: pointer; margin-top: 18px; padding: 12px 18px; color: #071016; background: #91eee4; border: 0; border-radius: 9px; font: inherit; font-weight: 750; }
+      button:disabled { cursor: wait; opacity: .6; }
+      .consent { display: flex; gap: 10px; align-items: start; margin-top: 18px; color: #aab8c9; font-size: 13px; line-height: 1.55; }
+      .consent input { width: auto; margin-top: 3px; }
+      .status { min-height: 1.5em; color: #a9f4d7; }
+      .error { color: #ffb5b5; }
+      .honeypot { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+      footer { padding: 24px 0; color: #8998aa; border-top: 1px solid #ffffff1a; font-size: 13px; }
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; } }
+    </style>
+  </head>
+  <body>
+    <header class="shell">
+      <a class="brand" href="https://neris.nexuscentralja.com.br/">✦ NERIS <span>PRO MAX</span></a>
+      <a href="https://neris.nexuscentralja.com.br/">Página principal ↗</a>
+    </header>
+    <main class="shell">
+      <div class="intro">Vamos conversar sobre o seu projeto.</div>
+      <h1>Fale com a <span class="gradient">Neris.</span></h1>
+      <p class="intro">Deixe seus dados para que a equipe possa retornar. Usamos suas informações somente para responder a esta solicitação.</p>
+      <section class="panel">
+        <form id="lead-form">
+          <label for="company">Empresa</label><input id="company" name="company_name" autocomplete="organization" minlength="2" maxlength="160" required>
+          <label for="email">E-mail para contato</label><input id="email" name="email" type="email" autocomplete="email" maxlength="254" required>
+          <label for="whatsapp">WhatsApp (opcional)</label><input id="whatsapp" name="whatsapp" type="tel" autocomplete="tel" maxlength="40">
+          <div class="honeypot" aria-hidden="true"><label for="website">Não preencha este campo</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
+          <div id="turnstile"></div>
+          <label class="consent"><input id="consent" type="checkbox" required><span>Autorizo a Neris Pro Max a usar estes dados para responder ao meu contato. Consulte nossa política de privacidade para saber mais.</span></label>
+          <button id="submit" type="submit">Enviar solicitação</button>
+        </form>
+        <p class="fine">Os dados são enviados à infraestrutura de atendimento da Neris. Não informe senhas, dados financeiros ou informações sensíveis neste formulário.</p>
+        <p class="status" id="status" role="status" aria-live="polite"></p>
+      </section>
+    </main>
+    <footer class="shell"><a href="https://chat.neris.nexuscentralja.com.br/">Ir para o chat da Neris</a></footer>
+    <script>
+      const $ = (selector) => document.querySelector(selector);
+      let captchaToken = "";
+      let config = null;
+      function setStatus(text, error = false) {
+        $("#status").textContent = text;
+        $("#status").classList.toggle("error", error);
+      }
+      async function loadConfig() {
+        const response = await fetch("/api/config", { cache: "no-store" });
+        if (!response.ok) throw new Error("O formulário está temporariamente indisponível.");
+        config = await response.json();
+        if (!config.mock_mode && config.turnstile_site_key) {
+          const script = document.createElement("script");
+          script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+          script.async = true;
+          script.defer = true;
+          script.onload = () => window.turnstile.render("#turnstile", {
+            sitekey: config.turnstile_site_key,
+            callback: (token) => { captchaToken = token; },
+            "expired-callback": () => { captchaToken = ""; },
+            "error-callback": () => { captchaToken = ""; setStatus("Não foi possível concluir a verificação antispam.", true); },
+          });
+          script.onerror = () => setStatus("Não foi possível carregar a verificação antispam.", true);
+          document.head.append(script);
+        } else if (!config.mock_mode) {
+          setStatus("A proteção antispam ainda não foi configurada. Tente novamente mais tarde.", true);
+        }
+      }
+      $("#lead-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!config) return setStatus("O formulário ainda está carregando.", true);
+        const button = $("#submit");
+        button.disabled = true;
+        setStatus("Enviando sua solicitação...");
+        try {
+          const response = await fetch("/api/leads/capture", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              company_name: $("#company").value.trim(),
+              email: $("#email").value.trim(),
+              whatsapp: $("#whatsapp").value.trim() || null,
+              consent: $("#consent").checked,
+              captcha_token: captchaToken || null,
+              website: $("#website").value,
+            }),
+          });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.detail || result.error || "Não foi possível enviar seus dados.");
+          $("#lead-form").reset();
+          captchaToken = "";
+          setStatus(result.mock ? "Solicitação registrada em modo demonstração. Nenhum contato real foi enviado." : "Solicitação recebida. Obrigado pelo contato!");
+        } catch (error) {
+          setStatus(error.message, true);
+        } finally {
+          button.disabled = false;
+        }
+      });
+      loadConfig().catch((error) => setStatus(error.message, true));
+    </script>
+  </body>
+</html>

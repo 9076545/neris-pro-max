@@ -1,0 +1,31 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "neris-pro-max-chat",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-10-18",
+  "workers_dev": true,
+  "routes": [
+    { "pattern": "neris.nexuscentralja.com.br", "custom_domain": true },
+    { "pattern": "chat.neris.nexuscentralja.com.br", "custom_domain": true }
+  ],
+  "ai": {
+    "binding": "AI"
+  },
+  "assets": {
+    "directory": "./worker/public",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "vars": {
+    "PUBLIC_ORIGIN": "https://chat.neris.nexuscentralja.com.br",
+    "PUBLIC_ORIGINS": "https://neris.nexuscentralja.com.br,https://chat.neris.nexuscentralja.com.br,https://nexuscentralja.com.br,https://www.nexuscentralja.com.br",
+    "NERIS_PUBLIC_URL": "https://neris.nexuscentralja.com.br",
+    "NERIS_CHAT_URL": "https://chat.neris.nexuscentralja.com.br",
+    "NERIS_API_BASE_URL": "https://admin.nexuscentralja.com.br",
+    "PUBLIC_TURNSTILE_SITE_KEY": "",
+    "NERIS_MOCK_MODE": "false",
+    "SUPABASE_URL": "https://zxgftvyyexrsxroqgbkn.supabase.co",
+    "CLOUDFLARE_AI_MODEL": "@cf/meta/llama-3.1-8b-instruct",
+    "NERIS_SPECIALIST_AI_MODEL": "@cf/meta/llama-3.2-3b-instruct"
+  }
+}

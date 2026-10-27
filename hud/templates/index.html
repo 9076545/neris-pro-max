@@ -1,0 +1,786 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title>Neris Pro Max | Admin HUD</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+        background: #080b12;
+        color: #e7f2ff;
+        --panel: #101722;
+        --line: #253348;
+        --cyan: #56e5f2;
+        --violet: #aa88ff;
+        --muted: #8a9aaf;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-width: 320px; background: radial-gradient(ellipse at 14% 0%, #17233d 0, #080b12 48rem); }
+      button, input, select, textarea { font: inherit; }
+      button { cursor: pointer; }
+      .shell { width: min(1500px, 100% - 32px); margin: 0 auto; padding: 24px 0 42px; }
+      header { display: flex; justify-content: space-between; align-items: center; gap: 16px; border-bottom: 1px solid var(--line); padding-bottom: 18px; }
+      .brand { display: flex; align-items: center; gap: 13px; }
+      .brand-mark { width: 40px; height: 40px; border: 1px solid var(--cyan); border-radius: 50%; box-shadow: 0 0 22px #56e5f255, inset 0 0 16px #56e5f222; }
+      h1, h2, p { margin: 0; }
+      h1 { font-size: 16px; letter-spacing: .13em; text-transform: uppercase; }
+      .eyebrow { color: var(--muted); font-size: 11px; letter-spacing: .15em; text-transform: uppercase; margin-top: 5px; }
+      .connection { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 12px; }
+      .led { width: 8px; height: 8px; border-radius: 50%; background: #607187; }
+      .led.live { background: #54efac; box-shadow: 0 0 12px #54efac; }
+      .hero { display: grid; grid-template-columns: minmax(250px, .85fr) minmax(300px, 1.15fr); gap: 18px; margin: 18px 0; }
+      .panel { border: 1px solid var(--line); background: linear-gradient(145deg, #111a27ed, #0c121cee); border-radius: 14px; overflow: hidden; }
+      .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; border-bottom: 1px solid var(--line); padding: 15px 17px; }
+      h2 { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
+      .panel-body { padding: 17px; }
+      #avatar-stage { height: 215px; position: relative; background: radial-gradient(ellipse, #22314a 0, #0b111c 64%); }
+      #avatar-stage canvas { display: block; width: 100%; height: 100%; }
+      .avatar-caption { position: absolute; inset: auto 0 12px; color: var(--muted); text-align: center; font-size: 10px; letter-spacing: .15em; pointer-events: none; }
+      .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .stat { padding: 11px; background: #0a1019; border: 1px solid var(--line); border-radius: 9px; }
+      .stat strong { display: block; color: var(--cyan); font-size: 20px; font-weight: 600; }
+      .stat span { display: block; color: var(--muted); font-size: 10px; margin-top: 4px; text-transform: uppercase; }
+      .office-wrap { padding: 14px; }
+      .office { display: grid; grid-template-columns: repeat(7, minmax(65px, 1fr)); gap: 8px; }
+      .desk { min-height: 66px; border: 1px solid #263a48; border-radius: 8px; background: #101c26; padding: 8px 6px; text-align: center; position: relative; }
+      .desk::before { content: ""; display: block; width: 25px; height: 17px; margin: 0 auto 5px; border: 1px solid #355a65; background: #142b34; box-shadow: inset 0 -4px #0a1218; image-rendering: pixelated; }
+      .desk[data-status="running"] { border-color: #56e5f2; box-shadow: inset 0 0 14px #56e5f211; }
+      .desk[data-status="running"]::before { background: #17424a; box-shadow: 0 0 11px #56e5f288, inset 0 -4px #10242b; }
+      .desk[data-status="error"] { border-color: #ff6d7a; }
+      .desk[data-status="paused"] { border-color: #f4c96b; }
+      .desk-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 9px; color: #c8d8e8; }
+      .desk-status { display: block; color: var(--muted); font-size: 8px; margin-top: 3px; text-transform: uppercase; }
+      .legend { display: flex; flex-wrap: wrap; gap: 14px; padding: 0 17px 15px; color: var(--muted); font-size: 10px; }
+      .legend b { display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 50%; background: #607187; }
+      .legend .busy { background: var(--cyan); }
+      .legend .fault { background: #ff6d7a; }
+      .nexus-events { max-height: 280px; overflow: auto; padding: 10px 16px; }
+      .nexus-event { padding: 8px 0; border-bottom: 1px solid #1a2533; font-size: 11px; }
+      .nexus-event small { display: block; color: var(--muted); margin-top: 4px; }
+      .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 14px; }
+      .metric { min-height: 76px; padding: 11px; background: #0a1019; border: 1px solid var(--line); border-radius: 9px; }
+      .metric strong, .metric span { display: block; }
+      .metric strong { color: var(--cyan); font-size: 16px; font-weight: 600; }
+      .metric span { color: var(--muted); font-size: 10px; margin-top: 5px; }
+      .bottom { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr); gap: 18px; }
+      .logs { height: 250px; overflow: auto; padding: 12px 16px; font: 11px/1.6 ui-monospace, Consolas, monospace; }
+      .log-entry { border-bottom: 1px solid #1a2533; padding: 5px 0; color: #b8c8d8; overflow-wrap: anywhere; }
+      .log-entry time { color: #788ca4; margin-right: 9px; }
+      .log-entry .running { color: var(--cyan); }
+      .lead-list { max-height: 250px; overflow: auto; padding: 10px 16px; }
+      .lead { padding: 9px 0; border-bottom: 1px solid #1a2533; font-size: 11px; }
+      .lead small { display: block; color: var(--muted); margin-top: 4px; }
+      .lead button { margin-top: 8px; }
+      .analysis { margin-top: 8px; padding: 10px; border-left: 2px solid var(--teal); color: var(--muted); white-space: pre-wrap; }
+      .artemis-result { margin-top: 10px; color: var(--muted); font: 11px/1.5 ui-monospace, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+      .task-form { display: grid; grid-template-columns: minmax(130px, .35fr) 1fr auto; gap: 8px; margin-top: 12px; }
+      input, select, textarea { color: #e7f2ff; background: #090f18; border: 1px solid #2a3a4e; border-radius: 7px; padding: 9px 10px; outline: none; }
+      #android-goal { width: 100%; min-height: 80px; margin-top: 9px; resize: vertical; }
+      #android-confirm { width: auto; margin: 12px 6px 0 0; }
+      input:focus, select:focus, textarea:focus { border-color: var(--cyan); }
+      .button { border: 1px solid #3aa6b1; border-radius: 7px; color: #071216; background: var(--cyan); padding: 9px 13px; font-weight: 650; }
+      .button:disabled { opacity: .45; cursor: not-allowed; }
+      .button.secondary { background: #151f2d; color: #d7e8f8; border-color: #344961; }
+      #login { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; padding: 20px; background: #060a10ed; backdrop-filter: blur(10px); }
+      #login[hidden] { display: none; }
+      .login-card { width: min(390px, 100%); padding: 25px; border: 1px solid #315066; border-radius: 15px; background: #101722; box-shadow: 0 20px 90px #0009; }
+      .login-card h2 { margin-bottom: 8px; }
+      .login-card p { color: var(--muted); font-size: 12px; line-height: 1.5; margin-bottom: 18px; }
+      .login-card input { width: 100%; margin-bottom: 10px; }
+      .header-actions { display: flex; align-items: center; gap: 14px; }
+      .header-links { display: flex; flex-wrap: wrap; gap: 8px; }
+      .central-office { margin: 18px 0; }
+      .central-office-frame { display: block; width: 100%; height: min(1050px, 82vh); min-height: 680px; border: 0; background: #14121f; }
+      #login-error, #task-error { min-height: 17px; color: #ff929a; font-size: 11px; margin-top: 8px; }
+      .muted { color: var(--muted); font-size: 11px; }
+      @media (max-width: 850px) {
+        .hero, .bottom { grid-template-columns: 1fr; }
+        .office { grid-template-columns: repeat(5, minmax(52px, 1fr)); }
+        .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+      @media (max-width: 480px) {
+        .shell { width: min(100% - 20px, 1500px); padding-top: 14px; }
+        .office { grid-template-columns: repeat(3, minmax(55px, 1fr)); }
+        .task-form { grid-template-columns: 1fr; }
+        .connection { font-size: 10px; }
+        .header-actions { align-items: flex-end; flex-direction: column; gap: 8px; }
+        .header-links { justify-content: flex-end; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header>
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true"></div>
+          <div>
+            <h1>Neris Pro Max</h1>
+            <p class="eyebrow">Painel administrativo privado</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <div class="connection"><span id="connection-led" class="led"></span><span id="connection-label">Desconectado</span></div>
+          <nav class="header-links" aria-label="Links do ecossistema">
+            <a class="button secondary" href="#central-office">Escritório pixelado Central JA ↓</a>
+            <a class="button secondary" href="https://neris.nexuscentralja.com.br/" target="_blank" rel="noopener noreferrer">Landing da Neris ↗</a>
+            <a class="button secondary" href="https://chat.neris.nexuscentralja.com.br/" target="_blank" rel="noopener noreferrer">Chat público ↗</a>
+          </nav>
+          <button id="logout" class="button secondary" type="button" hidden>Sair</button>
+        </div>
+      </header>
+
+      <section class="panel central-office" id="central-office" aria-label="Escritório pixelado da Central JA">
+        <div class="panel-head">
+          <h2>Escritório pixelado · Central JA</h2>
+          <a class="button secondary" href="https://nexuscentralja.com.br/escritorio/" target="_blank" rel="noopener noreferrer">Abrir em outra aba ↗</a>
+        </div>
+        <iframe
+          class="central-office-frame"
+          src="https://nexuscentralja.com.br/escritorio/"
+          title="Escritório pixelado da Central JA"
+          loading="lazy"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allow="microphone"
+        ></iframe>
+      </section>
+
+      <section class="hero">
+        <article class="panel">
+          <div class="panel-head"><h2>Avatar de operação</h2><span class="muted">INTERFACE ADMIN</span></div>
+          <div id="avatar-stage"><span class="avatar-caption">NERIS // CORE</span></div>
+          <div class="panel-body stats">
+            <div class="stat"><strong id="count-total">—</strong><span>Agentes registrados</span></div>
+            <div class="stat"><strong id="count-running">—</strong><span>Em execução</span></div>
+            <div class="stat"><strong id="count-errors">—</strong><span>Com erro</span></div>
+          </div>
+        </article>
+        <article class="panel">
+          <div class="panel-head"><h2>Colmeia Neris</h2><span class="muted">VISÃO DO PROCESSO ADMINISTRATIVO ATUAL</span></div>
+          <div class="office-wrap"><div id="office" class="office" aria-live="polite"></div></div>
+          <div class="legend"><span><b class="busy"></b>Executando tarefa</span><span><b></b>Online, aguardando tarefa</span><span><b class="fault"></b>Erro</span><span id="office-note">Aguardando autenticação</span></div>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><h2>Nexus · atividade observada</h2><button id="refresh-nexus" class="button secondary" type="button" disabled>Atualizar eventos</button></div>
+        <div class="office-wrap"><div id="nexus-office" class="office" aria-live="polite"></div></div>
+        <div id="nexus-note" class="legend">Sem conexão com a fonte de eventos Nexus.</div>
+        <div id="nexus-events" class="nexus-events"><p class="muted">Autentique-se para consultar eventos recentes.</p></div>
+      </section>
+
+      <section class="panel" style="margin-top:18px">
+        <div class="panel-head"><h2>Métricas verificadas</h2><span class="muted">SEM ESTIMATIVAS</span></div>
+        <div class="metrics">
+          <div class="metric"><strong id="metric-leads">—</strong><span>Leads recentes carregados (máx. 500)</span></div>
+          <div class="metric"><strong id="metric-orders">—</strong><span>Pedidos Shopify recentes</span></div>
+          <div class="metric"><strong id="metric-customers">Não conectado</strong><span>Clientes · fonte não conectada</span></div>
+          <div class="metric"><strong id="metric-spend">Não conectado</strong><span>Gastos · sem fonte de faturamento</span></div>
+          <div class="metric"><strong id="metric-visits">Não conectado</strong><span>Acessos · sem telemetria de visitas</span></div>
+        </div>
+        <div id="metrics-note" class="legend">Contagens indisponíveis até autenticar e consultar as fontes reais.</div>
+      </section>
+
+      <section class="panel" style="margin-top:18px">
+        <div class="panel-head"><h2>ARTEMIS · Android</h2><button id="refresh-android" class="button secondary" type="button" disabled>Buscar dispositivos</button></div>
+        <div class="panel-body">
+          <p id="android-status" class="muted">Conecte e configure um host ARTEMIS no backend para listar dispositivos.</p>
+          <form id="android-form">
+            <div class="task-form">
+              <select id="android-device" aria-label="Dispositivo Android"><option value="">Dispositivo configurado no servidor</option></select>
+              <select id="android-profile" aria-label="Perfil de execução"><option value="flash">Flash</option><option value="pro">Pro</option></select>
+              <button class="button" id="run-android" type="submit" disabled>Executar tarefa</button>
+            </div>
+            <textarea id="android-goal" maxlength="1200" required placeholder="Descreva o teste de interface autorizado"></textarea>
+            <label class="muted"><input id="android-confirm" type="checkbox"> Confirmo que sou proprietária ou tenho autorização para testar este aparelho.</label>
+          </form>
+          <pre id="android-result" class="artemis-result" aria-live="polite"></pre>
+        </div>
+      </section>
+
+      <section class="bottom">
+        <article class="panel">
+          <div class="panel-head"><h2>Console de atividade</h2><button id="refresh-logs" class="button secondary" type="button" disabled>Atualizar</button></div>
+          <div id="logs" class="logs" aria-live="polite"></div>
+          <div class="panel-body">
+            <form id="task-form">
+              <div class="task-form">
+                <select id="agent-select" aria-label="Agente de destino"></select>
+                <input id="task-prompt" maxlength="6000" required placeholder="Descreva uma tarefa de análise autorizada">
+                <button class="button" id="submit-task" type="submit" disabled>Executar</button>
+              </div>
+              <p id="task-error" role="status"></p>
+            </form>
+          </div>
+        </article>
+        <article class="panel">
+          <div class="panel-head"><h2>Meus leads comerciais</h2><button id="refresh-leads" class="button secondary" type="button" disabled>Atualizar</button></div>
+          <div id="leads" class="lead-list"><p class="muted">Autentique-se para carregar os dados autorizados.</p></div>
+        </article>
+      </section>
+      <section class="panel" style="margin-top:18px">
+        <div class="panel-head"><h2>Análise comercial</h2><div><button id="analyze-offer" class="button secondary" type="button" disabled>Analisar oferta Neris</button> <button id="analyze-products" class="button secondary" type="button" disabled>Analisar catálogo Shopify</button></div></div>
+        <div id="offer-analysis" class="panel-body muted">A análise usa somente os dados de plano e preço configurados; resultados comerciais reais ainda dependem de métricas verificadas.</div>
+        <div id="product-analysis" class="panel-body muted">A análise Shopify consulta catálogo e vendas recentes sem dados de compradores. Configure permissões de leitura antes de usar.</div>
+      </section>
+      <section class="panel" style="margin-top:18px">
+        <div class="panel-head"><h2>Comandos da Neris</h2><span class="muted">CLASSIFICAÇÃO LOCAL + IA CLOUDFLARE</span></div>
+        <div class="panel-body">
+          <form id="command-form">
+            <div class="task-form">
+              <input id="command-text" maxlength="6000" required placeholder="Ex.: Neris, melhore isso: revise o fluxo de autenticação" aria-label="Comando para a Neris">
+              <span class="muted" style="align-self:center">Interrompa ou retome filas administrativas; análises não aplicam patches automaticamente.</span>
+              <button class="button" id="send-command" type="submit" disabled>Enviar</button>
+            </div>
+          </form>
+          <p id="command-result" class="muted" role="status" style="margin-top:10px"></p>
+        </div>
+      </section>
+    </main>
+
+    <section id="login" aria-label="Autenticação administrativa">
+      <form id="login-form" class="login-card">
+        <h2>Acesso do administrador</h2>
+        <p>Entre com a conta Nexus autorizada. O servidor valida e-mail confirmado e permissão de owner em cada conexão administrativa.</p>
+        <label class="muted" for="admin-email">E-mail autorizado</label>
+        <input id="admin-email" type="email" autocomplete="username" required>
+        <label class="muted" for="admin-password">Senha da conta Nexus</label>
+        <input id="admin-password" type="password" autocomplete="current-password" required>
+        <button class="button" type="submit" style="width:100%">Conectar</button>
+        <div id="login-error" role="status"></div>
+      </form>
+    </section>
+
+    <script type="module">
+      import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js";
+
+      const stage = document.querySelector("#avatar-stage");
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+      camera.position.z = 5;
+      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      stage.prepend(renderer.domElement);
+
+      const core = new THREE.Mesh(
+        new THREE.IcosahedronGeometry(0.72, 2),
+        new THREE.MeshStandardMaterial({
+          color: 0x142d42,
+          emissive: 0x155d75,
+          emissiveIntensity: 1.5,
+          metalness: 0.62,
+          roughness: 0.27,
+          wireframe: true,
+        }),
+      );
+      scene.add(core);
+      const halo = new THREE.Mesh(
+        new THREE.TorusGeometry(1.16, 0.018, 8, 100),
+        new THREE.MeshBasicMaterial({ color: 0x56e5f2 }),
+      );
+      halo.rotation.x = 0.4;
+      scene.add(halo);
+      scene.add(new THREE.AmbientLight(0x8ab8ff, 2));
+      const light = new THREE.PointLight(0x56e5f2, 22, 12);
+      light.position.set(2, 2, 3);
+      scene.add(light);
+
+      const resize = () => {
+        const width = stage.clientWidth;
+        const height = stage.clientHeight;
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height, false);
+      };
+      resize();
+      new ResizeObserver(resize).observe(stage);
+      const target = { x: 0, y: 0 };
+      const pointer = { x: 0, y: 0 };
+      stage.addEventListener("mousemove", (event) => {
+        const rect = stage.getBoundingClientRect();
+        target.x = ((event.clientX - rect.left) / rect.width - 0.5) * 0.8;
+        target.y = ((event.clientY - rect.top) / rect.height - 0.5) * 0.55;
+      });
+      const animate = (time) => {
+        requestAnimationFrame(animate);
+        pointer.x += (target.x - pointer.x) * 0.08;
+        pointer.y += (target.y - pointer.y) * 0.08;
+        core.rotation.y = time * 0.00022 + pointer.x;
+        core.rotation.x = pointer.y;
+        halo.rotation.z = time * 0.00012;
+        renderer.render(scene, camera);
+      };
+      requestAnimationFrame(animate);
+    </script>
+    <script>
+      (() => {
+        const byId = (id) => document.getElementById(id);
+        const office = byId("office");
+        const logs = byId("logs");
+        const passwordInput = byId("admin-password");
+        const loginOverlay = byId("login");
+        const api = (path) => `${location.origin}${path}`;
+        let token = "";
+        let authConfig;
+        let socket;
+        let commandSocket;
+        let reconnectTimer;
+        let agents = [];
+
+        function addLog(message, status = "") {
+          const entry = document.createElement("div");
+          entry.className = "log-entry";
+          const time = document.createElement("time");
+          time.textContent = new Date().toLocaleTimeString("pt-BR");
+          const text = document.createElement("span");
+          text.className = status;
+          text.textContent = message;
+          entry.append(time, text);
+          logs.prepend(entry);
+          while (logs.children.length > 120) logs.lastElementChild.remove();
+        }
+
+        function setConnected(connected, message) {
+          byId("connection-led").classList.toggle("live", connected);
+          byId("connection-label").textContent = message;
+          byId("submit-task").disabled = !connected;
+          byId("refresh-logs").disabled = !connected;
+          byId("refresh-leads").disabled = !connected;
+          byId("refresh-nexus").disabled = !connected;
+          byId("refresh-android").disabled = !connected;
+          byId("analyze-offer").disabled = !connected;
+          byId("analyze-products").disabled = !connected;
+          byId("logout").hidden = !connected;
+          syncAndroidTask();
+        }
+
+        function renderAgents(items) {
+          agents = items;
+          office.replaceChildren();
+          const selector = byId("agent-select");
+          selector.replaceChildren();
+          for (const agent of items) {
+            const tile = document.createElement("div");
+            tile.className = "desk";
+            tile.dataset.status = agent.status;
+            const name = document.createElement("span");
+            name.className = "desk-name";
+            name.textContent = agent.name;
+            const status = document.createElement("span");
+            status.className = "desk-status";
+            status.textContent = agent.status;
+            tile.append(name, status);
+            office.append(tile);
+            const option = document.createElement("option");
+            option.value = agent.id;
+            option.textContent = `${agent.name} (${agent.status})`;
+            selector.append(option);
+          }
+          byId("count-total").textContent = String(items.length);
+          byId("count-running").textContent = String(items.filter((a) => a.status !== "offline").length);
+          byId("count-errors").textContent = String(items.filter((a) => a.status === "error").length);
+          byId("office-note").textContent = `${items.length} workers FastAPI; tarefas executam quando atribuídas`;
+        }
+
+        async function request(path, options = {}) {
+          const response = await fetch(api(path), {
+            ...options,
+            headers: {
+              authorization: `Bearer ${token}`,
+              "content-type": "application/json",
+              ...options.headers,
+            },
+          });
+          if (!response.ok) {
+            const body = await response.json().catch(() => ({}));
+            throw new Error(body.detail || `HTTP ${response.status}`);
+          }
+          return response.json();
+        }
+
+        function metricText(metric) {
+          if (metric.status === "demo_mode") return "Modo demo";
+          if (metric.status === "unavailable") return "Indisponível";
+          if (metric.status !== "connected" || metric.value === null) return "Não conectado";
+          return String(metric.value);
+        }
+
+        async function refreshMetrics() {
+          const data = await request("/api/admin/metrics");
+          byId("metric-leads").textContent = metricText(data.leads);
+          byId("metric-orders").textContent = metricText(data.orders);
+          byId("metric-customers").textContent = metricText(data.customers);
+          byId("metric-spend").textContent = metricText(data.spend);
+          byId("metric-visits").textContent = metricText(data.visits);
+          byId("metrics-note").textContent =
+            `Leads: ${data.leads.source || "sem fonte"} · Pedidos: ${data.orders.source || "sem fonte"} · Clientes, gastos e acessos ainda não têm conectores de dados.`;
+        }
+
+        async function refreshNexus() {
+          const data = await request("/api/admin/nexus/events");
+          const nexusOffice = byId("nexus-office");
+          const nexusEvents = byId("nexus-events");
+          nexusOffice.replaceChildren();
+          nexusEvents.replaceChildren();
+          for (const agent of data.agents) {
+            const tile = document.createElement("div");
+            tile.className = "desk";
+            const isActive = ["pensando", "ferramenta", "digitando", "voz"].includes(agent.tipo);
+            tile.dataset.status = agent.tipo === "erro" ? "error" : isActive ? "running" : "paused";
+            const name = document.createElement("span");
+            name.className = "desk-name";
+            name.textContent = agent.agente || "Agente Nexus";
+            const status = document.createElement("span");
+            status.className = "desk-status";
+            status.textContent = agent.tipo || "observado";
+            tile.append(name, status);
+            nexusOffice.append(tile);
+          }
+          for (const event of data.events.slice(0, 40)) {
+            const row = document.createElement("div");
+            row.className = "nexus-event";
+            const title = document.createElement("strong");
+            title.textContent = `${event.agente || "Agente Nexus"} · ${event.tipo || "evento"}`;
+            const detail = document.createElement("small");
+            detail.textContent = `${event.texto || ""} · ${event.ts ? new Date(event.ts).toLocaleString("pt-BR") : "horário indisponível"}`;
+            row.append(title, detail);
+            nexusEvents.append(row);
+          }
+          if (!data.events.length) nexusEvents.textContent = "A fonte Nexus não retornou eventos recentes.";
+          byId("nexus-note").textContent =
+            `${data.agents.length} agentes com eventos recentes observados · ${data.events.length} eventos; ausência de evento não prova que estejam offline.`;
+        }
+
+        function syncAndroidTask() {
+          byId("run-android").disabled =
+            !token ||
+            !byId("android-goal").value.trim() ||
+            !byId("android-confirm").checked;
+        }
+
+        async function refreshAndroidDevices() {
+          const status = byId("android-status");
+          status.textContent = "Consultando o host ARTEMIS configurado...";
+          try {
+            const data = await request("/api/admin/android/devices");
+            const devices = data.devices;
+            const select = byId("android-device");
+            select.replaceChildren();
+            const configured = document.createElement("option");
+            configured.value = "";
+            configured.textContent = "Dispositivo configurado no servidor";
+            select.append(configured);
+            for (const device of devices) {
+              const option = document.createElement("option");
+              option.value = device.serial;
+              option.textContent = `${device.model || device.product || "Android"} · ${device.serial} · ${device.state}${device.busy ? " · ocupado" : ""}`;
+              option.disabled = device.busy ||
+                ["offline", "unauthorized", "disconnected"].includes(String(device.state).toLowerCase());
+              select.append(option);
+            }
+            status.textContent = devices.length
+              ? `${devices.length} dispositivo(s) retornado(s) pelo host real.`
+              : "Host conectado, mas nenhum dispositivo foi listado.";
+          } catch (error) {
+            status.textContent = `ARTEMIS indisponível: ${error.message}. Configure NERIS_ENABLE_ARTEMIS, ARTEMIS_BASE_URL e ARTEMIS_TOKEN no servidor.`;
+          }
+        }
+
+        async function refreshLogs() {
+          const data = await request("/api/admin/logs?limit=100");
+          logs.replaceChildren();
+          for (const item of data.logs) {
+            const entry = document.createElement("div");
+            entry.className = "log-entry";
+            const time = document.createElement("time");
+            time.textContent = new Date(item.created_at).toLocaleTimeString("pt-BR");
+            const text = document.createElement("span");
+            text.textContent = `${item.nome_agente}: ${item.status_acao} — ${item.log_texto}`;
+            entry.append(time, text);
+            logs.append(entry);
+          }
+        }
+
+        async function refreshLeads() {
+          const data = await request("/api/admin/leads?limit=100");
+          const container = byId("leads");
+          container.replaceChildren();
+          for (const lead of data.leads) {
+            const row = document.createElement("div");
+            row.className = "lead";
+            const company = document.createElement("strong");
+            company.textContent = lead.empresa_nome;
+            const status = document.createElement("small");
+            status.textContent = `${lead.segmento || "Sem segmento"} · ${lead.status_funil} · ${lead.contato_email || lead.contato_whatsapp || "Sem contato"}`;
+            const analyze = document.createElement("button");
+            analyze.className = "button secondary";
+            analyze.type = "button";
+            analyze.textContent = "Analisar oportunidade";
+            const result = document.createElement("div");
+            result.className = "analysis";
+            result.hidden = true;
+            analyze.addEventListener("click", async () => {
+              analyze.disabled = true;
+              result.hidden = false;
+              result.textContent = "Analisando...";
+              try {
+                const analysis = await request(`/api/admin/leads/${encodeURIComponent(lead.id)}/analyze`, { method: "POST" });
+                result.textContent = `Índice de prontidão ${analysis.heuristic_readiness_percent}% · ${analysis.confidence}\n${analysis.advice}\n${analysis.warning}`;
+              } catch (error) {
+                result.textContent = error.message;
+              } finally {
+                analyze.disabled = false;
+              }
+            });
+            row.append(company, status, analyze, result);
+            container.append(row);
+          }
+          if (data.leads.length === 0) {
+            container.textContent = "Nenhum lead registrado.";
+          }
+        }
+
+        function connect() {
+          clearTimeout(reconnectTimer);
+          socket = new WebSocket(`${location.origin.replace(/^http/, "ws")}/ws/agents`);
+          socket.addEventListener("open", () => {
+            socket.send(JSON.stringify({ type: "authenticate", token }));
+          });
+          socket.addEventListener("message", async (event) => {
+            let message;
+            try {
+              message = JSON.parse(event.data);
+            } catch {
+              addLog("O servidor enviou uma mensagem WebSocket inválida.");
+              return;
+            }
+            if (message.type === "snapshot") {
+              loginOverlay.hidden = true;
+              passwordInput.value = "";
+              setConnected(true, "Conectado · administrador");
+              renderAgents(message.agents);
+              addLog("Canal administrativo autenticado.");
+              connectCommands();
+              refreshAndroidDevices();
+              try {
+                await Promise.all([refreshLogs(), refreshLeads(), refreshMetrics(), refreshNexus()]);
+              } catch (error) {
+                addLog(`Falha ao carregar uma fonte de dados: ${error.message}`);
+              }
+            } else if (message.type === "agent_update") {
+              const updated = message.agent;
+              renderAgents(agents.map((agent) => agent.id === updated.id ? updated : agent));
+              addLog(`${updated.name}: ${updated.status}`, updated.status);
+            } else if (message.type === "error") {
+              addLog(message.detail || "Erro no WebSocket.");
+            }
+          });
+          socket.addEventListener("close", (event) => {
+            setConnected(false, "Conexão encerrada");
+            if (event.code === 1008) {
+              token = "";
+              loginOverlay.hidden = false;
+              byId("login-error").textContent =
+                "Acesso recusado. Confirme a senha e a autorização owner no Supabase Nexus.";
+            } else if (token) {
+              reconnectTimer = setTimeout(connect, 2000);
+            }
+          });
+          socket.addEventListener("error", () => {
+            byId("login-error").textContent = "Falha de conexão. Verifique o servidor e tente novamente.";
+          });
+        }
+
+        function connectCommands() {
+          if (commandSocket && commandSocket.readyState < WebSocket.CLOSING) {
+            commandSocket.close();
+          }
+          const activeCommandSocket = new WebSocket(
+            `${location.origin.replace(/^http/, "ws")}/ws/commands`,
+          );
+          commandSocket = activeCommandSocket;
+          activeCommandSocket.addEventListener("open", () => {
+            activeCommandSocket.send(JSON.stringify({ type: "authenticate", token }));
+            byId("send-command").disabled = !byId("command-text").value.trim();
+          });
+          activeCommandSocket.addEventListener("message", (event) => {
+            let message;
+            try {
+              message = JSON.parse(event.data);
+            } catch {
+              byId("command-result").textContent = "Resposta inválida do servidor.";
+              return;
+            }
+            if (message.type === "command_result") {
+              byId("command-result").textContent = `${message.intent}: ${message.response}`;
+              addLog(`${message.intent}: ${message.response}`);
+            } else if (message.type === "error") {
+              byId("command-result").textContent = message.detail;
+            }
+          });
+          activeCommandSocket.addEventListener("close", () => {
+            if (commandSocket === activeCommandSocket) {
+              byId("send-command").disabled = true;
+            }
+          });
+        }
+
+        byId("login-form").addEventListener("submit", async (event) => {
+          event.preventDefault();
+          byId("login-error").textContent = "";
+          const submit = event.currentTarget.querySelector("button[type=submit]");
+          submit.disabled = true;
+          try {
+            if (!authConfig) {
+              const configResponse = await fetch(api("/api/admin/auth-config"));
+              if (!configResponse.ok) throw new Error("Autenticação Supabase não configurada no servidor.");
+              authConfig = await configResponse.json();
+            }
+            const response = await fetch(
+              `${authConfig.supabase_url}/auth/v1/token?grant_type=password`,
+              {
+                method: "POST",
+                headers: {
+                  apikey: authConfig.anon_key,
+                  "content-type": "application/json",
+                },
+                body: JSON.stringify({
+                  email: byId("admin-email").value.trim(),
+                  password: passwordInput.value,
+                }),
+              },
+            );
+            const session = await response.json().catch(() => ({}));
+            if (!response.ok || typeof session.access_token !== "string") {
+              throw new Error(session.msg || session.message || "E-mail ou senha inválidos.");
+            }
+            token = session.access_token;
+            connect();
+          } catch (error) {
+            token = "";
+            byId("login-error").textContent = error.message;
+          } finally {
+            submit.disabled = false;
+          }
+        });
+        byId("refresh-logs").addEventListener("click", () => {
+          refreshLogs().catch((error) => addLog(`Falha ao atualizar logs: ${error.message}`));
+        });
+        byId("refresh-leads").addEventListener("click", () => {
+          refreshLeads().catch((error) => addLog(`Falha ao atualizar leads: ${error.message}`));
+        });
+        byId("refresh-nexus").addEventListener("click", () => {
+          refreshNexus().catch((error) => {
+            byId("nexus-note").textContent = `Falha ao carregar eventos Nexus: ${error.message}`;
+          });
+          byId("refresh-android").addEventListener("click", refreshAndroidDevices);
+          byId("android-goal").addEventListener("input", syncAndroidTask);
+          byId("android-confirm").addEventListener("change", syncAndroidTask);
+          byId("android-form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            syncAndroidTask();
+            if (byId("run-android").disabled) return;
+            const button = byId("run-android");
+            const result = byId("android-result");
+            button.disabled = true;
+            result.textContent = "Executando teste autorizado...";
+            try {
+              const data = await request("/api/admin/android/tasks", {
+                method: "POST",
+                body: JSON.stringify({
+                  goal: byId("android-goal").value.trim(),
+                  device_serial: byId("android-device").value || null,
+                  profile: byId("android-profile").value,
+                  confirmed: byId("android-confirm").checked,
+                }),
+              });
+              result.textContent = JSON.stringify(data, null, 2);
+              addLog(`ARTEMIS ${data.task_id || "tarefa"}: ${data.status || "concluída"}`);
+            } catch (error) {
+              result.textContent = `Falha na tarefa ARTEMIS: ${error.message}`;
+            } finally {
+              byId("android-goal").value = "";
+              byId("android-confirm").checked = false;
+              syncAndroidTask();
+            }
+          });
+        });
+        byId("logout").addEventListener("click", () => {
+          token = "";
+          clearTimeout(reconnectTimer);
+          socket?.close();
+          commandSocket?.close();
+          setConnected(false, "Sessão encerrada");
+          loginOverlay.hidden = false;
+          passwordInput.value = "";
+        });
+        byId("analyze-offer").addEventListener("click", async () => {
+          const container = byId("offer-analysis");
+          byId("analyze-offer").disabled = true;
+          container.textContent = "Analisando...";
+          try {
+            const result = await request("/api/admin/sales/offer-analysis");
+            container.textContent = `${result.advice}\n\nPreços listados são sugestões; integração de cobrança ainda não está ativa.`;
+          } catch (error) {
+            container.textContent = error.message;
+          } finally {
+            byId("analyze-offer").disabled = false;
+          }
+        });
+        byId("analyze-products").addEventListener("click", async () => {
+          const container = byId("product-analysis");
+          byId("analyze-products").disabled = true;
+          container.textContent = "Consultando catálogo e vendas agregadas da Shopify...";
+          try {
+            const result = await request("/api/admin/agents/product-scout/shopify", {
+              method: "POST",
+              body: JSON.stringify({}),
+            });
+            container.textContent = `Fonte: ${result.source}\n${result.analysis}`;
+          } catch (error) {
+            container.textContent = error.message;
+          } finally {
+            byId("analyze-products").disabled = false;
+          }
+        });
+        byId("command-form").addEventListener("submit", (event) => {
+          event.preventDefault();
+          const text = byId("command-text").value.trim();
+          if (!text || commandSocket?.readyState !== WebSocket.OPEN) return;
+          commandSocket.send(JSON.stringify({ text }));
+          byId("command-text").value = "";
+          byId("send-command").disabled = true;
+        });
+        byId("command-text").addEventListener("input", () => {
+          byId("send-command").disabled =
+            commandSocket?.readyState !== WebSocket.OPEN ||
+            !byId("command-text").value.trim();
+        });
+        byId("task-form").addEventListener("submit", async (event) => {
+          event.preventDefault();
+          byId("task-error").textContent = "";
+          const agentId = byId("agent-select").value;
+          const prompt = byId("task-prompt").value.trim();
+          if (!agentId || !prompt) return;
+          byId("submit-task").disabled = true;
+          try {
+            const result = await request(`/api/admin/agents/${encodeURIComponent(agentId)}/tasks`, {
+              method: "POST",
+              body: JSON.stringify({ prompt }),
+            });
+            addLog(`${agentId} concluiu: ${result.result}`);
+            byId("task-prompt").value = "";
+            await refreshLogs();
+          } catch (error) {
+            byId("task-error").textContent = error.message;
+          } finally {
+            byId("submit-task").disabled = socket?.readyState !== WebSocket.OPEN;
+          }
+        });
+        setConnected(false, "Aguardando autenticação");
+      })();
+    </script>
+  </body>
+</html>
