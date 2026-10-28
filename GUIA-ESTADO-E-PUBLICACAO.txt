@@ -5,7 +5,7 @@ IMPORTANTE
 Este arquivo separa o que existe no codigo daquilo que ja funciona online.
 O deploy de Cloudflare Containers foi tentado, mas a API recusou a criacao do
 Container. A imagem compilou; o backend nao foi publicado por esse caminho.
-A nova estrategia e Render Starter para o FastAPI, com chat e DNS permanecendo
+A nova estrategia e Render Free para teste do FastAPI, com chat e DNS permanecendo
 na Cloudflare. Consulte o passo a passo atualizado no README.md. Nao divulgue
 enderecos como ativos ate que o deploy Render e os testes publicos passem.
 

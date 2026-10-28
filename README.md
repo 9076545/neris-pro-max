@@ -91,11 +91,11 @@ O `wrangler.jsonc` configura o Worker de chat, Workers AI, assets e somente os
 dois subdomínios públicos. O backend FastAPI usa `render.yaml` e o Dockerfile
 existente, conectado ao GitHub pela Render. O build da imagem ocorre na
 infraestrutura da Render; Docker não precisa ser instalado no computador local.
-O plano configurado é Starter para evitar suspensão por inatividade e suportar
-o uso contínuo do HUD/WebSockets. É um serviço pago: consulte o preço atual da
-Render antes de criar o Blueprint. A opção Free suspende o serviço após 15
-minutos sem tráfego, pode levar cerca de um minuto para despertar e não é
-recomendada para produção.
+O plano configurado é Free para permitir testar sem custo de computação. A
+Render suspende o serviço Free após 15 minutos sem tráfego; o primeiro acesso
+após a suspensão pode levar cerca de um minuto e ultrapassar o tempo de espera
+do Worker de chat. A Render não recomenda instâncias Free para produção. Para
+uso contínuo e respostas previsíveis, será necessário escolher um plano pago.
 
 Workers AI e Workers Free têm limites de uso que podem mudar; confira o painel
 e os limites oficiais antes de tráfego público. Na documentação consultada em 20/10/2026, Workers Free inclui até 100.000
@@ -157,12 +157,14 @@ podem exigir pagamento e estão fora desta garantia de gratuidade.
 1. Confirme que `.env` e credenciais não estão no GitHub. Não use a service-role
    key que foi exposta anteriormente; rotacione-a primeiro no projeto Supabase
    Neris. Rotacione também qualquer chave Nexus anteriormente exposta.
-2. Entre em [Render Dashboard](https://dashboard.render.com) e selecione
-   **New → Blueprint**. Conecte o repositório `9076545/neris-pro-max`, branch
-   `main` e arquivo `render.yaml`. Revise as mudanças: o Blueprint cria um
-   serviço Web com plano **Starter pago**, usando `Dockerfile` e health check
-   `/health`. Não confirme se o plano ou a cobrança exibidos forem diferentes
-   do esperado.
+2. Entre em [Render Dashboard](https://dashboard.render.com). Se ainda não
+   conectou um Blueprint, selecione **New → Blueprint** e conecte o repositório
+   `9076545/neris-pro-max`, branch `main`, arquivo `render.yaml`. Se já conectou,
+   abra o Blueprint existente e sincronize com a branch `main` (Manual Sync, se
+   necessário); não crie um segundo serviço. Revise as mudanças: o serviço
+   `neris-admin-api` deve estar no plano **Free**, usar `Dockerfile` e health
+   check `/health`. Se a Render mostrar plano pago ou outro serviço, pare e não
+   confirme.
 3. Durante a criação do Blueprint, a Render solicitará os valores para as
    variáveis `sync: false`. Preencha-as no dashboard (não no repositório):
 
@@ -198,11 +200,12 @@ podem exigir pagamento e estão fora desta garantia de gratuidade.
    Teste o chat, os caminhos de leads/CRM e os endpoints administrativos após o
    DNS/TLS estar válido.
 
-O serviço Free da Render não é adequado para produção: suspende após 15 minutos
-sem tráfego, pode demorar cerca de um minuto para acordar e tem armazenamento
-efêmero. O plano Starter evita esse desligamento, mas tem cobrança mensal.
-Consulte o valor vigente no dashboard antes de confirmar. O sistema usa Supabase
-para persistência; não salve dados permanentes no disco local do container.
+O serviço Free da Render é para testes, não produção: suspende após 15 minutos
+sem tráfego, pode demorar cerca de um minuto para acordar, tem armazenamento
+efêmero e cota mensal limitada de horas de instância. A primeira chamada via
+Worker depois do sono pode falhar/expirar; tente novamente após aguardar o
+serviço acordar. O sistema usa Supabase para persistência; não salve dados
+permanentes no disco local do serviço.
 
 ### Voz e conectores opcionais
 

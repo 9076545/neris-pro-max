@@ -2,7 +2,7 @@ services:
   - type: web
     name: neris-admin-api
     runtime: docker
-    plan: starter
+    plan: free
     region: ohio
     branch: main
     dockerfilePath: ./Dockerfile
