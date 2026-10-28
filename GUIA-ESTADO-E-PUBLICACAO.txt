@@ -1,18 +1,20 @@
 NERIS PRO MAX — ESTADO REAL, CHAVES E PLANO DE PUBLICACAO
-Atualizado em 20/10/2026
+Atualizado em 28/10/2026
 
 IMPORTANTE
 Este arquivo separa o que existe no codigo daquilo que ja funciona online.
-No momento desta revisao, nao ha confirmacao verificavel de deploy de producao.
-O deploy foi interrompido/nao confirmado. Nao divulgue os enderecos como ativos
-ate que um deploy apareca no Cloudflare e os testes publicos passem.
+O deploy de Cloudflare Containers foi tentado, mas a API recusou a criacao do
+Container. A imagem compilou; o backend nao foi publicado por esse caminho.
+A nova estrategia e Render Starter para o FastAPI, com chat e DNS permanecendo
+na Cloudflare. Consulte o passo a passo atualizado no README.md. Nao divulgue
+enderecos como ativos ate que o deploy Render e os testes publicos passem.
 
 1. RESPOSTA DIRETA: TUDO ESTA PRONTO?
 
 Nao. A Neris Chat e o site foram desenvolvidos, mas nao posso afirmar que todo o
 projeto pedido esteja concluido, online ou plenamente funcional.
 
-- O Worker tem um catalogo de 39 perfis especialistas, selecao manual e
+- O Worker tem um catalogo de 44 perfis especialistas, selecao manual e
   encaminhamento automatico por tema. Cada mensagem passa por um modelo
   especialista Workers AI e depois pelo modelo principal Workers AI.
 - Esses 39 perfis sao instrucoes usadas sob demanda, nao 39 processos sempre
@@ -52,16 +54,16 @@ Limites consultados na documentacao Cloudflare em 20/10/2026:
 - Workers Free: ate 100.000 requisicoes por dia; CPU limitado por chamada.
 - Workers AI Free: 10.000 Neurons por dia. O excedente nao e gratuito; no plano
   Free, as operacoes deixam de funcionar quando a cota acaba.
-- Workers Paid e Containers nao foram ativados nem fazem parte dos passos
-  gratuitos.
+- Cloudflare Containers foram removidos do plano de deploy do backend. O FastAPI
+  sera hospedado separadamente na Render; o Worker de chat continua na Cloudflare.
 - Supabase Free e um servico separado; a documentacao informa 500 MB e pausa de
   projetos inativos apos uma semana. Confirme limites e estado no dashboard.
 - ElevenLabs, Deepgram e APIs de terceiros podem cobrar. Nao ha garantia de custo
   total zero quando essas integracoes sao usadas.
 
-Rotas de projetos, leads e CRM retornam erro explicito de recurso indisponivel
-no Free; o HUD admin nao e publicado. A interface deve identificar esses
-recursos como indisponiveis, sem sugerir que o envio de formularios funciona.
+As rotas de projetos, leads e CRM dependem do FastAPI na Render. Elas so podem
+ser consideradas ativas apos concluir o deploy e validar os endpoints; ate la,
+nao anuncie esses recursos como disponiveis.
 
 3. CHAVES NECESSARIAS PARA O CHAT
 
@@ -134,8 +136,8 @@ validos e confirmacao explicita dos dominios.
    neris.nexuscentralja.com.br
    chat.neris.nexuscentralja.com.br
    Se o Wrangler mostrar conflito de rota/DNS, pare. Nao substitua rotas Nexus.
-   O subdominio admin.nexuscentralja.com.br e publicado separadamente pelo
-   workflow de Cloudflare Containers descrito no README.
+   O subdominio admin.nexuscentralja.com.br sera vinculado ao servico FastAPI
+   da Render conforme o passo a passo atualizado no README.
 
 6. Para publicar, somente quando confirmar que aceita as limitacoes acima:
    npx wrangler deploy

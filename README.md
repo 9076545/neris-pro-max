@@ -1,22 +1,21 @@
 # Neris Pro Max
 
 Aplicação com interface e API do chat em Cloudflare Workers, Workers AI para
-respostas e Supabase para autenticação e persistência. O chat e o backend
-FastAPI/Container são implantados separadamente. O Container exige Workers Paid
-e não está incluído na configuração gratuita.
+respostas e Supabase para autenticação e persistência. O chat é implantado na
+Cloudflare; o backend FastAPI é implantado separadamente na Render.
 
 ## Endereços e separação de dados
 
 - `https://neris.nexuscentralja.com.br/`: site público e apresentação dos planos.
 - `https://chat.neris.nexuscentralja.com.br/`: interface do chat.
 - `/leads`, `/crm` e o estúdio de projetos dependem do backend Python; ficam
-  disponíveis apenas quando o Container estiver implantado e configurado.
-- `https://admin.nexuscentralja.com.br/`: FastAPI em Cloudflare Containers,
-  publicado separadamente do Worker de chat via GitHub Actions.
+  disponíveis quando o serviço Render estiver implantado e configurado.
+- `https://admin.nexuscentralja.com.br/`: FastAPI na Render, com DNS gerenciado
+  pela Cloudflare; o Worker de chat continua encaminhando as chamadas de API.
 
 O HUD, CRM, captura e análise de leads, análise de produtos conectada ao Shopify
-e geração de projetos dependem do backend FastAPI/Container. A publicação do
-backend é separada do Worker de chat.
+e geração de projetos dependem do backend FastAPI. A publicação do backend é
+separada do Worker de chat.
 
 O catálogo Python contém 43 perfis administrativos e o catálogo do Worker contém
 44 perfis. O agente 40 permanece com status `pendente_integracao` e não pode ser
@@ -89,15 +88,14 @@ valor, prazo e condições e depender da escolha do cliente.
 ## Cloudflare: implantação e configuração
 
 O `wrangler.jsonc` configura o Worker de chat, Workers AI, assets e somente os
-dois subdomínios públicos. O backend FastAPI usa a configuração separada
-`wrangler.admin.jsonc` e um Cloudflare Container publicado pelo workflow
-`.github/workflows/deploy-admin-container.yml`. O build da imagem roda no runner
-Ubuntu do GitHub Actions; Docker não precisa ser instalado no computador local.
-O workflow só executa quando iniciado manualmente em Actions e publica o
-subdomínio `admin.nexuscentralja.com.br`. Cloudflare Containers exige Workers
-Paid; a documentação atual informa plano a partir de US$ 5/mês, franquias de uso
-e possíveis cobranças adicionais. Não é gratuito. Consulte os valores e limites
-vigentes antes de executar o workflow.
+dois subdomínios públicos. O backend FastAPI usa `render.yaml` e o Dockerfile
+existente, conectado ao GitHub pela Render. O build da imagem ocorre na
+infraestrutura da Render; Docker não precisa ser instalado no computador local.
+O plano configurado é Starter para evitar suspensão por inatividade e suportar
+o uso contínuo do HUD/WebSockets. É um serviço pago: consulte o preço atual da
+Render antes de criar o Blueprint. A opção Free suspende o serviço após 15
+minutos sem tráfego, pode levar cerca de um minuto para despertar e não é
+recomendada para produção.
 
 Workers AI e Workers Free têm limites de uso que podem mudar; confira o painel
 e os limites oficiais antes de tráfego público. Na documentação consultada em 20/10/2026, Workers Free inclui até 100.000
@@ -113,8 +111,8 @@ Antes de publicar o Worker de chat:
 1. Mantenha os Workers Nexus atuais. O `wrangler.jsonc` usa apenas
    `neris.nexuscentralja.com.br` e `chat.neris.nexuscentralja.com.br`; não
    associe este Worker aos domínios raiz nem aos hostnames Nexus existentes.
-   O hostname admin pertence ao Worker/container FastAPI separado e não deve
-   ser associado ao Worker de chat.
+   O hostname admin será associado ao serviço FastAPI da Render; não associe
+   esse domínio ao Worker de chat.
 2. A migration
    `supabase/migrations/20261017_neris_security_and_chat.sql` já foi aplicada
    ao projeto Supabase Neris desta implantação. Se preparar outro projeto,
@@ -154,49 +152,61 @@ Workers AI continua vinculado pelo binding `AI`; não configure token de API
 Cloudflare para essa chamada. Uso acima das cotas gratuitas ou serviços externos
 podem exigir pagamento e estão fora desta garantia de gratuidade.
 
-### Publicar o FastAPI sem Docker local
+### Publicar o FastAPI na Render sem Docker local
 
-1. Confirme no GitHub que o repositório está público sem o arquivo `.env` nem
-   credenciais. O `.env` deve permanecer ignorado pelo Git.
-2. Em **Settings → Secrets and variables → Actions → New repository secret**,
-   cadastre estes segredos obrigatórios:
+1. Confirme que `.env` e credenciais não estão no GitHub. Não use a service-role
+   key que foi exposta anteriormente; rotacione-a primeiro no projeto Supabase
+   Neris. Rotacione também qualquer chave Nexus anteriormente exposta.
+2. Entre em [Render Dashboard](https://dashboard.render.com) e selecione
+   **New → Blueprint**. Conecte o repositório `9076545/neris-pro-max`, branch
+   `main` e arquivo `render.yaml`. Revise as mudanças: o Blueprint cria um
+   serviço Web com plano **Starter pago**, usando `Dockerfile` e health check
+   `/health`. Não confirme se o plano ou a cobrança exibidos forem diferentes
+   do esperado.
+3. Durante a criação do Blueprint, a Render solicitará os valores para as
+   variáveis `sync: false`. Preencha-as no dashboard (não no repositório):
 
-   | Nome do secret | Valor |
+   | Variável no Render | Valor |
    |---|---|
-   | `CLOUDFLARE_DEPLOY_API_TOKEN` | Token dedicado ao deploy; use o modelo **Edit Cloudflare Workers**, restrito à conta Cloudflare correta e à zona necessária. |
-   | `CLOUDFLARE_ACCOUNT_ID` | ID da conta Cloudflare do deploy. |
    | `NERIS_ADMIN_EMAIL` | E-mail autorizado como administrador do HUD. |
-   | `TURNSTILE_SECRET_KEY` | Secret key do widget Turnstile correspondente ao site. |
-   | `NEXUS_SUPABASE_URL` | URL do projeto Supabase Nexus usado para autorização owner. |
+   | `TURNSTILE_SECRET_KEY` | Secret key do widget Turnstile usado pelo formulário. |
+   | `NEXUS_SUPABASE_URL` | URL do projeto Supabase Nexus. |
    | `NEXUS_SUPABASE_ANON_KEY` | Chave publicável/anon do mesmo projeto Nexus. |
    | `SUPABASE_URL` | URL do projeto Supabase Neris `zxgftvyyexrsxroqgbkn`. |
-   | `SUPABASE_SERVICE_ROLE_KEY` | Chave service-role **recém-rotacionada** do Supabase Neris; não reutilize a chave que foi exposta na conversa. |
-   | `CLOUDFLARE_AI_API_TOKEN` | Token separado para o backend chamar Workers AI; não reutilize o token de deploy. |
+   | `SUPABASE_SERVICE_ROLE_KEY` | Chave nova/rotacionada do projeto Neris. |
+   | `CLOUDFLARE_ACCOUNT_ID` | ID da conta Cloudflare usada pelo backend para Workers AI. |
+   | `CLOUDFLARE_API_TOKEN` | Token de runtime com permissão de executar Workers AI; não use token de deploy nem limite por IP fixo. |
 
-   Nunca coloque valores desses secrets no código, em arquivos versionados ou
-   nesta conversa. Os dois projetos Supabase são distintos: use o projeto Nexus
-   apenas em `NEXUS_*` e o projeto Neris apenas em `SUPABASE_*`.
-3. Crie ou confirme o hostname `admin.nexuscentralja.com.br` na zona Cloudflare
-   `nexuscentralja.com.br` e assegure que ele não esteja associado a outro
-   Worker/serviço. O custom domain será associado ao Worker
-   `neris-admin-api` na primeira publicação.
-4. No dashboard Cloudflare, confirme que a conta está no Workers Paid antes do
-   deploy. O workflow constrói a imagem no runner GitHub, mas não ativa billing
-   por você.
-5. Faça push dos arquivos do workflow, do Dockerfile, de
-   `worker/admin-container.js` e `wrangler.admin.jsonc` para a branch `main`.
-6. No GitHub, abra **Actions → Deploy Neris FastAPI Container → Run workflow**,
-   selecione `main` e confirme **Run workflow**. O job executa os testes do
-   Worker, constrói/publica o Container e o Worker admin, e então configura os
-   secrets no Worker `neris-admin-api` usando `wrangler.admin.jsonc`. O workflow
-   não publica nem altera os secrets do Worker de chat.
-7. Após o job concluir, teste `https://admin.nexuscentralja.com.br/health` e
-   confirme que `/` exige login do administrador. Verifique logs no GitHub
-   Actions e no Cloudflare se o health check falhar.
+   Os projetos Supabase Nexus e Neris são diferentes: use `NEXUS_*` para Nexus
+   e `SUPABASE_*` para Neris. Secrets já salvos no GitHub não são copiados
+   automaticamente para Render. Nunca coloque valores secretos no código ou
+   nesta conversa.
+4. Clique em **Deploy Blueprint** e acompanhe o build/deploy na Render. O GitHub
+   conectado permitirá deployments posteriores a cada push na branch ligada.
+5. Quando o serviço estiver **Live**, abra as configurações de **Custom
+   Domains**, adicione `admin.nexuscentralja.com.br` e siga exatamente o CNAME
+   de destino que a Render apresentar. Na Cloudflare → **DNS**, atualize apenas
+   o registro `admin` conflitante para esse destino. Use **DNS only** durante
+   verificação TLS, a menos que a instrução atual da Render diga explicitamente
+   que o proxy Cloudflare é suportado para a configuração apresentada. Não
+   altere os registros dos domínios `neris`, `chat` ou dos serviços Nexus.
+6. Aguarde a verificação de domínio e o certificado TLS. Teste
+   `https://admin.nexuscentralja.com.br/health`; a resposta esperada é
+   `{"status":"ok"}`. Acesse `/` e confirme que o painel pede autenticação.
+7. O Worker de chat continua usando `NERIS_API_BASE_URL` em
+   `https://admin.nexuscentralja.com.br`, portanto não precisa mudar de origem.
+   Teste o chat, os caminhos de leads/CRM e os endpoints administrativos após o
+   DNS/TLS estar válido.
+
+O serviço Free da Render não é adequado para produção: suspende após 15 minutos
+sem tráfego, pode demorar cerca de um minuto para acordar e tem armazenamento
+efêmero. O plano Starter evita esse desligamento, mas tem cobrança mensal.
+Consulte o valor vigente no dashboard antes de confirmar. O sistema usa Supabase
+para persistência; não salve dados permanentes no disco local do container.
 
 ### Voz e conectores opcionais
 
-A voz do chat web usa o Worker **`neris-pro-max-chat`**, não o Container admin.
+A voz do chat web usa o Worker **`neris-pro-max-chat`**, não o serviço FastAPI.
 Cadastre nele, pelo Cloudflare Dashboard → Workers & Pages → `neris-pro-max-chat`
 → Settings → Variables and Secrets, os secrets `ELEVENLABS_API_KEY` e
 `ELEVENLABS_VOICE_ID`. Esses dados são opcionais; a voz fica indisponível sem
@@ -204,12 +214,11 @@ credenciais válidas. A pipeline Python de voz só precisa de `DEEPGRAM_API_KEY`
 além dos secrets ElevenLabs se for realmente ativada.
 
 Meta/WhatsApp, Shopify, WEG, Artemis e Nexus Plus também são opcionais. Não
-cadastre chaves de serviços que não foram configurados e testados. Podem ser
-adicionados como secrets ao Worker `neris-admin-api`; o Container recebe apenas
-os nomes explicitamente encaminhados por `worker/admin-container.js`. Depois de
-alterar secrets, reinicie/republique o serviço para garantir que o Container
-receba os novos valores. Mantenha `WHATSAPP_AGENT40_ENABLED=false` até validar
-com um número de teste.
+cadastre chaves de serviços que não foram configurados e testados. Quando
+necessário, configure-os como variáveis secretas no serviço FastAPI pela
+Render Dashboard; após alterar variáveis, aplique as mudanças e aguarde o
+reinício do serviço. Mantenha `WHATSAPP_AGENT40_ENABLED=false` até validar com
+um número de teste.
 
 ## WhatsApp, produtos e dados
 
@@ -246,7 +255,7 @@ explicitamente identificada como demonstração.
 ## Desenvolvimento e testes locais
 
 O `.env` existente está em mock mode e serve apenas para testes locais; os
-valores `mock-*` não são credenciais. O Container de produção não copia `.env`.
+valores `mock-*` não são credenciais. O serviço de produção não copia `.env`.
 Para testar o backend localmente:
 
 ```powershell
@@ -255,7 +264,7 @@ py -3.11 -m hud.server
 py -3.11 -m unittest discover -s tests -t . -v
 ```
 
-Para desenvolvimento local do Worker/Container, use Docker e Wrangler:
+Para desenvolvimento local do Worker, use Wrangler:
 
 ```powershell
 npx wrangler dev
@@ -269,9 +278,8 @@ npx wrangler dev
 - `connectors/`: Shopify, Meta WhatsApp, telemetria e Artemis.
 - `hud/`: API FastAPI e painel administrativo privado.
 - `worker/`: Worker, site público, chat, CRM e formulários.
-- `Dockerfile`: imagem FastAPI construída pelo runner do GitHub Actions para Cloudflare Containers.
-- `worker/admin-container.js`: Worker de encaminhamento do Container FastAPI.
-- `wrangler.admin.jsonc`: configuração de deploy isolada do Worker admin.
+- `Dockerfile`: imagem FastAPI construída e executada pela Render.
+- `render.yaml`: Blueprint da Render para criar o serviço FastAPI a partir do GitHub.
 - `supabase/migrations/`: policies, histórico, quota e isolamento por proprietário.
 
 ## HUD administrativo e atividade real

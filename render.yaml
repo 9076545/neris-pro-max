@@ -1,0 +1,45 @@
+services:
+  - type: web
+    name: neris-admin-api
+    runtime: docker
+    plan: starter
+    region: ohio
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: NERIS_ADMIN_URL
+        value: https://admin.nexuscentralja.com.br
+      - key: NERIS_PUBLIC_URL
+        value: https://neris.nexuscentralja.com.br
+      - key: NERIS_CHAT_URL
+        value: https://chat.neris.nexuscentralja.com.br
+      - key: NERIS_MOCK_MODE
+        value: "false"
+      - key: WHATSAPP_AGENT40_ENABLED
+        value: "false"
+      - key: NERIS_ENABLE_ARTEMIS
+        value: "false"
+      - key: WEG_MQTT_TLS
+        value: "true"
+      - key: CLOUDFLARE_AI_MODEL
+        value: "@cf/meta/llama-3.1-8b-instruct"
+      - key: CLOUDFLARE_EMBEDDING_MODEL
+        value: "@cf/baai/bge-m3"
+      - key: NERIS_ADMIN_EMAIL
+        sync: false
+      - key: TURNSTILE_SECRET_KEY
+        sync: false
+      - key: NEXUS_SUPABASE_URL
+        sync: false
+      - key: NEXUS_SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: CLOUDFLARE_ACCOUNT_ID
+        sync: false
+      - key: CLOUDFLARE_API_TOKEN
+        sync: false
