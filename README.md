@@ -120,6 +120,18 @@ Antes de publicar o Worker de chat:
    existentes. Para `logs_agentes` e `leads_prospeccao`, acrescenta políticas
    restritivas que exigem `service_role`, limitando o efeito de políticas
    permissivas anteriores.
+   O backend também requer a tabela `public.logs_agentes`, definida pela
+   migration `supabase/migrations/20261028_neris_agent_logs.sql`. Antes de
+   reiniciar um deploy que falhou com `PGRST205`, confira em Render → serviço
+   `neris-admin-api` → **Environment** o host de `SUPABASE_URL`. Para o projeto
+   Neris desta implantação, ele deve ser
+   `zxgftvyyexrsxroqgbkn.supabase.co`. Se o host for diferente, pare e corrija
+   a URL/chave para o projeto Neris correto; não execute a migration em outro
+   projeto por engano. No Supabase desse projeto, abra **SQL Editor → New query**,
+   copie o conteúdo de `supabase/migrations/20261028_neris_agent_logs.sql` e
+   clique em **Run**. Ela cria a tabela somente se faltar, restringe o acesso a
+   `service_role` e atualiza o cache PostgREST. Depois, na Render, use **Manual
+   Deploy → Deploy latest commit** se o serviço não reiniciar sozinho.
 3. No Supabase, confirme Site URL
    `https://neris.nexuscentralja.com.br` e Redirect URLs do site e chat. Para
    outro ambiente, adicione os hostnames correspondentes.
