@@ -47,6 +47,64 @@
   .btn.primary { background: var(--accent); color: #051315; border-color: transparent; }
   .btn.danger { background: transparent; color: var(--danger); border-color: color-mix(in srgb, var(--danger) 55%, transparent); }
   .btn.icon { width: 38px; padding: 0; }
+  .mic-btn .wave { display: none; align-items: center; gap: 2px; height: 16px; }
+  .mic-btn .wave i { width: 2px; height: 4px; border-radius: 2px; background: currentColor; }
+  .mic-btn.recording .mic-ico { display: none; }
+  .mic-btn.recording .wave { display: inline-flex; }
+  .mic-btn.recording .wave i { animation: micWave .8s ease-in-out infinite; }
+  .mic-btn.recording .wave i:nth-child(2) { animation-delay: .15s; }
+  .mic-btn.recording .wave i:nth-child(3) { animation-delay: .3s; }
+  .mic-btn.recording .wave i:nth-child(4) { animation-delay: .45s; }
+  @keyframes micWave { 0%, 100% { height: 4px; } 50% { height: 16px; } }
+  .nuvem-back { position: fixed; inset: 0; z-index: 70; }
+  .nuvem-back[hidden] { display: none; }
+  .nuvem-cena { position: absolute; inset: 0; overflow: hidden; background: linear-gradient(#4fb0f5 0%, #a9dcff 100%); transition: background 1.2s ease; }
+  .nuvem-back.instavel .nuvem-cena { background: linear-gradient(#1d2a40 0%, #3c4f72 100%); }
+  .nv { position: absolute; height: 46px; width: 150px; background: #fff; border-radius: 40px; opacity: .9; animation: deriva 26s linear infinite; }
+  .nv::before { content: ""; position: absolute; width: 70px; height: 70px; background: #fff; border-radius: 50%; left: 22px; top: -30px; }
+  .nv.n1 { top: 14%; animation-duration: 30s; }
+  .nv.n2 { top: 32%; width: 110px; animation-duration: 22s; animation-delay: -8s; }
+  .nv.n3 { top: 62%; animation-duration: 36s; animation-delay: -14s; }
+  .nv.n4 { top: 80%; width: 170px; animation-duration: 28s; animation-delay: -4s; }
+  @keyframes deriva { from { transform: translateX(-200px); } to { transform: translateX(110vw); } }
+  .chuva { position: absolute; inset: -20%; opacity: 0; pointer-events: none; background: repeating-linear-gradient(104deg, transparent 0 16px, rgba(190,215,255,.45) 16px 18px); animation: chuvaCai .7s linear infinite; transition: opacity 1s ease; }
+  .nuvem-back.instavel .chuva { opacity: .75; }
+  @keyframes chuvaCai { from { background-position: 0 0; } to { background-position: -36px 72px; } }
+  .nuvem { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); transition: transform .35s ease-out; }
+  .nuvem svg { display: block; animation: flutua 4.5s ease-in-out infinite; filter: drop-shadow(0 14px 22px rgba(20,60,110,.35)); }
+  @keyframes flutua { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+  .nuvem .corpo { fill: #3d9be9; stroke: #2a7cc7; stroke-width: 3; transition: fill .8s ease; }
+  .nuvem-back.instavel .nuvem .corpo { fill: #e5484d; stroke: #b8323a; }
+  .nuvem .olho { fill: #fff; }
+  .nuvem .pupila { fill: #0e2a4a; transition: transform .12s ease-out; }
+  .nuvem-back.instavel .nuvem .pupila { fill: #3a0b10; }
+  .nuvem .bochecha { fill: #ff9ab0; opacity: .75; }
+  .nuvem .boca { fill: none; stroke: #0e2a4a; stroke-width: 5; stroke-linecap: round; transition: opacity .3s ease; }
+  .nuvem .boca.triste { opacity: 0; }
+  .nuvem-back.instavel .nuvem .boca.feliz { opacity: 0; }
+  .nuvem-back.instavel .nuvem .boca.triste { opacity: 1; }
+  .nuvem-back.falando .nuvem .boca.feliz { animation: fala .4s ease-in-out infinite alternate; transform-origin: 120px 120px; }
+  @keyframes fala { from { transform: scaleY(1); } to { transform: scaleY(1.8); } }
+  .nuvem-back.ouvindo .nuvem svg { animation-duration: 1.6s; }
+  .nuvem-status { position: absolute; left: 16px; right: 16px; bottom: 96px; text-align: center; color: #fff; font-size: 15px; font-weight: 650; text-shadow: 0 2px 12px rgba(0,0,0,.35); }
+  .nuvem-acoes { position: absolute; left: 0; right: 0; bottom: 28px; display: flex; gap: 10px; justify-content: center; }
+  .nuvem-acoes .btn { min-width: 130px; }
+  .nuvem-cena { background: radial-gradient(circle at 18% 14%, rgba(150,210,255,.9) 0 1px, transparent 2px), radial-gradient(circle at 82% 26%, rgba(150,210,255,.8) 0 1px, transparent 2px), radial-gradient(circle at 64% 84%, rgba(150,210,255,.7) 0 1px, transparent 2px), radial-gradient(ellipse at 50% 34%, #0d2f66 0%, #061431 48%, #02060f 100%) !important; }
+  .nuvem-back.instavel .nuvem-cena { background: radial-gradient(ellipse at 50% 34%, #26407a 0%, #0c1632 55%, #05070f 100%) !important; }
+  .nv { opacity: .08 !important; }
+  .nuvem svg { filter: drop-shadow(0 0 26px rgba(40,170,255,.85)) drop-shadow(0 0 60px rgba(40,140,255,.45)); }
+  .nuvem-back.instavel .nuvem svg { filter: drop-shadow(0 0 26px rgba(255,60,80,.8)); }
+  .nuvem .corpo { fill: url(#gCorpo) !important; stroke: none !important; }
+  .nuvem-back.instavel .nuvem .corpo { fill: url(#gErro) !important; }
+  .nuvem .anel { fill: none; stroke: rgba(70,180,255,.7); stroke-width: 2; }
+  .nuvem .anel2 { stroke: rgba(70,180,255,.35); }
+  .nuvem .brilho-topo { fill: #ffffff; opacity: .28; }
+  .nuvem .olho { fill: #06142c; }
+  .nuvem .pupila { fill: #ffffff; }
+  .nuvem .boca { stroke: #06142c; stroke-width: 5; }
+  .nuvem-back.instavel .nuvem .boca.triste { stroke: #3a0610; }
+  #instalar { position: fixed; right: 12px; bottom: 96px; z-index: 60; box-shadow: 0 6px 22px rgba(0,0,0,.35); }
+  #instalar[hidden] { display: none; }
   .btn.small { min-height: 30px; font-size: 12px; padding: 0 10px; }
   .side-list { display: grid; gap: 6px; }
   .side-item { text-align: left; padding: 9px 10px; border-radius: 4px; background: transparent; border: 1px solid transparent; color: var(--text); font-size: 13px; }
@@ -145,8 +203,43 @@
     *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
   }
 </style>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="theme-color" content="#0b0a08">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Neris">
 </head>
 <body>
+  <button class="btn small primary" id="instalar" hidden>Instalar app</button>
+  <div id="nuvem-back" class="nuvem-back" hidden>
+    <div class="nuvem-cena" id="nuvem-cena">
+      <span class="nv n1"></span><span class="nv n2"></span><span class="nv n3"></span><span class="nv n4"></span>
+      <div class="chuva" aria-hidden="true"></div>
+      <div class="nuvem" id="nuvem">
+        <svg viewBox="0 0 240 170" width="270" height="190" aria-label="Nuvem assistente">
+          <defs>
+            <radialGradient id="gCorpo" cx="42%" cy="30%" r="75%"><stop offset="0" stop-color="#9ff0ff"/><stop offset=".45" stop-color="#2fb4ff"/><stop offset="1" stop-color="#0a4fc4"/></radialGradient>
+            <radialGradient id="gErro" cx="42%" cy="30%" r="75%"><stop offset="0" stop-color="#ffc2c2"/><stop offset=".45" stop-color="#ff4d55"/><stop offset="1" stop-color="#7a0c1a"/></radialGradient>
+          </defs>
+          <ellipse class="anel" cx="120" cy="150" rx="112" ry="22" transform="rotate(-10 120 150)"/>
+          <ellipse class="anel anel2" cx="120" cy="128" rx="104" ry="18" transform="rotate(8 120 128)"/>
+          <path class="corpo" d="M60 140 Q20 140 25 105 Q30 75 65 80 Q70 40 115 42 Q150 20 180 50 Q220 52 218 95 Q232 140 185 140 Z"/>
+          <ellipse class="brilho-topo" cx="104" cy="62" rx="36" ry="13"/>
+          <ellipse class="olho" cx="94" cy="98" rx="8" ry="11"/><ellipse class="olho" cx="146" cy="98" rx="8" ry="11"/>
+          <circle class="pupila" id="pup1" cx="91" cy="93" r="3"/><circle class="pupila" id="pup2" cx="143" cy="93" r="3"/>
+          <circle class="bochecha" cx="72" cy="120" r="6"/><circle class="bochecha" cx="168" cy="120" r="6"/>
+          <path class="boca feliz" d="M103 122 Q120 140 137 122"/>
+          <path class="boca triste" d="M103 134 Q120 118 137 134"/>
+        </svg>
+      </div>
+      <div class="nuvem-status" id="nuvem-status" aria-live="polite"></div>
+      <div class="nuvem-acoes">
+        <button class="btn primary" id="nuvem-falar" type="button">Falar</button>
+        <button class="btn" id="nuvem-fechar" type="button">Voltar ao chat</button>
+      </div>
+    </div>
+  </div>
 
 <div id="loader" aria-hidden="true">
   <canvas id="sea"></canvas>
@@ -239,9 +332,15 @@
           <input type="file" id="file-in" multiple hidden accept=".txt,.md,.csv,.json,.html,.css,.js,image/jpeg,image/png,image/webp">
           <input type="file" id="cam-in" accept="image/jpeg,image/png,image/webp" capture="environment" hidden>
           <textarea id="input" rows="1" maxlength="4000" placeholder="Pergunte alguma coisa à Neris…" aria-label="Mensagem"></textarea>
-          <button class="btn icon" id="mic" aria-label="Falar com a Neris (gravar áudio)" title="Falar">Voz</button>
+          <button class="btn icon" id="camera-btn" aria-label="Tirar foto do ambiente" title="Tirar foto do ambiente"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
+          <input type="file" id="camera-input" accept="image/*" capture="environment" hidden>
+          <button class="btn icon mic-btn" id="mic" aria-label="Falar com a Neris (gravar áudio)" title="Falar com a Neris">
+            <svg class="mic-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6"/></svg>
+            <span class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          </button>
           <button class="btn icon danger" id="stop" aria-label="Parar gravação ou resposta" hidden title="Parar">Parar</button>
-          <button class="btn primary" id="send" aria-label="Enviar">Enviar</button>
+          <button class="btn primary icon" id="send" aria-label="Enviar" title="Enviar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+          <button class="btn icon" id="nuvem-abrir" aria-label="Conversar por voz com a nuvem" title="Conversar por voz"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 10v4M7 7v10M11 4v16M15 7v10M19 10v4"/></svg></button>
         </div>
       </div>
       <p class="hint">A Neris pode errar. Confira informações importantes. Áudio é transcrito e a voz é gerada por serviços externos, com seu consentimento.</p>
@@ -255,11 +354,12 @@
 <div class="modal-back" id="login-back" hidden>
   <form class="modal" id="login-form" aria-labelledby="login-title">
     <h2 id="login-title">Entrar na Neris</h2>
-    <p>Use sua conta ativa. A senha vai direto ao Supabase Auth; a Neris não a armazena.</p>
+    <p>Use o e-mail e a senha da sua conta Neris.</p>
     <div class="login-field"><label for="email">E-mail</label><input id="email" type="email" autocomplete="username" required></div>
     <div class="login-field"><label for="password">Senha</label><input id="password" type="password" autocomplete="current-password" required></div>
     <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end">
       <button type="button" class="btn" id="login-cancel">Agora não</button>
+      <button type="button" class="btn" id="signup-btn">Criar conta</button>
       <button type="submit" class="btn primary" id="login-submit">Entrar</button>
     </div>
     <p id="login-msg" style="color:var(--danger);min-height:18px"></p>
@@ -267,6 +367,18 @@
 </div>
 
 <!-- Modal de plugins -->
+<div class="modal-back" id="plans-back" hidden>
+  <div class="modal" role="dialog" aria-labelledby="plans-title">
+    <h2 id="plans-title">Planos da Neris</h2>
+    <p>Escolha o plano que faz sentido para você. Para contratar, fale com a gente.</p>
+    <ul style="list-style:none;padding:0;margin:12px 0;display:grid;gap:8px">
+      <li class="card-live ready" style="max-width:100%"><div class="t">Neris Pro</div></li>
+      <li class="card-live ready" style="max-width:100%"><div class="t">Neris 5.6</div></li>
+      <li class="card-live ready" style="max-width:100%"><div class="t">Neris Ultra Max</div></li>
+    </ul>
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="btn" id="plans-close">Fechar</button></div>
+  </div>
+</div>
 <div class="modal-back" id="investment-back" hidden>
   <div class="modal" role="dialog" aria-labelledby="investment-title" aria-describedby="investment-disclaimer">
     <h2 id="investment-title">Bolsa e investimentos</h2>
@@ -343,20 +455,32 @@
     const headers = { ...(opts.headers || {}) };
     if (S.session) headers.authorization = `Bearer ${S.session.access_token}`;
     if (opts.json !== undefined) { headers["content-type"] = "application/json"; opts.body = JSON.stringify(opts.json); }
-    const res = await fetch(path, { ...opts, headers, signal: opts.signal });
+    let res;
+    try {
+      const t0 = performance.now();
+      res = await fetch(path, { ...opts, headers, signal: opts.signal });
+      setRede(res.status < 500 && performance.now() - t0 < 6000);
+    } catch (err) {
+      if (err.name !== "AbortError") setRede(false);
+      throw err;
+    }
     return res;
+  }
+  const MSG_INDISPONIVEL = "Login temporariamente indisponível. Tente novamente em instantes.";
+  function configOk() { return !!S.config; }
+  function textoSeguro(err) {
+    const m = String((err && err.message) || "");
+    if (!m || /supabase|null|undefined|fetch|json|cannot|configur|network|failed/i.test(m)) return MSG_INDISPONIVEL;
+    return m;
   }
   async function loadConfig() {
     const r = await fetch("/api/config"); if (!r.ok) throw new Error("Configuração indisponível.");
     S.config = await r.json();
-    if (!S.config.supabase_url || !S.config.supabase_anon_key) {
-      throw new Error("Autenticação indisponível: configure o Supabase no Worker.");
-    }
     const ar = await fetch("/api/agents", { cache: "no-store" });
     if (!ar.ok) throw new Error("Não foi possível carregar os especialistas.");
     const data = await ar.json();
     S.agents = Array.isArray(data.agents) ? data.agents : [];
-    if (S.agents.length !== 44) throw new Error("O catálogo de especialistas não retornou os 44 perfis esperados.");
+    if (S.agents.length !== 44) console.warn("Catálogo com " + S.agents.length + " perfis (esperado: 44).");
     for (const a of S.agents) {
       const option = document.createElement("option");
       const pending = a.status === "pendente_integracao";
@@ -559,6 +683,7 @@
     S.recorder.addEventListener("dataavailable", (e) => { if (e.data.size) S.recChunks.push(e.data); });
     S.recorder.addEventListener("stop", onRecStop, { once: true });
     S.recorder.start();
+    $("mic").classList.add("recording");
     S.recStarted = performance.now();
     S.recTimer = setInterval(() => {
       const s = (performance.now() - S.recStarted) / 1000;
@@ -576,6 +701,7 @@
 
   async function onRecStop() {
     clearInterval(S.recTimer);
+    $("mic").classList.remove("recording");
     for (const t of S.recStream?.getTracks() || []) t.stop();
     S.recStream = null;
     const cancelled = S.recCancel; S.recCancel = false;
@@ -645,7 +771,6 @@
     text = (text || "").trim();
     if (!text && !S.pending.length) return;
     if (S.busy) return;
-    if (!S.session) { toast("Entre na sua conta para conversar."); return openLogin(); }
 
     let finalText = text;
     if (S.pending.length) {
@@ -663,12 +788,22 @@
     S.abort = new AbortController();
     const pendingEl = addMsg("assistant", "…");
     try {
+      const fotoEnviada = S.foto || null; S.foto = null;
       const r = await api("/api/chat", {
         method: "POST", signal: S.abort.signal,
-        json: { messages, agent_id: $("agent-select").value || undefined },
+        json: { messages, agent_id: $("agent-select").value || undefined, image: fotoEnviada || undefined },
       });
       const data = await r.json().catch(() => ({}));
-      if (!r.ok) { if (r.status === 401) { S.session = null; updateAuthUi(); } throw new Error(data.error || "A conversa não pôde ser processada."); }
+      if (!r.ok) {
+        if (r.status === 401) { S.session = null; updateAuthUi(); }
+        pendingEl.remove();
+        if (data.card) {
+          showCard(data.card);
+          setStatus(data.error === "guest_limit_reached" ? "Limite grátis atingido" : "Período grátis encerrado");
+          return;
+        }
+        throw new Error(data.message || data.error || "A conversa não pôde ser processada.");
+      }
       pendingEl.remove();
       const reply = data.response || "";
       S.history.push({ role: "assistant", content: reply });
@@ -799,6 +934,27 @@
 
   /* ------------------------------------------------ login */
   function openLogin() { $("login-back").hidden = false; $("email").focus(); }
+  function openPlans() { $("plans-back").hidden = false; }
+  $("plans-close").addEventListener("click", () => ($("plans-back").hidden = true));
+  function showCard(card) {
+    const el = document.createElement("div");
+    el.className = "card-live ready";
+    el.innerHTML = '<div class="ico" aria-hidden="true">✨</div><div><div class="t"></div><div class="s"></div></div><div class="act" style="display:flex;gap:6px;flex-wrap:wrap"></div>';
+    el.querySelector(".t").textContent = card.title || "";
+    el.querySelector(".s").textContent = card.body || "";
+    const act = el.querySelector(".act");
+    (card.actions || []).forEach((a) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "btn"; b.textContent = a.label;
+      b.addEventListener("click", () => {
+        if (a.action === "open_signup") openLogin();
+        else if (a.action === "open_plans") openPlans();
+        else if (a.action === "open_url" && a.url) window.open(a.url, "_blank", "noopener");
+      });
+      act.append(b);
+    });
+    $("thread").append(el); scrollDown();
+  }
   function updateAuthUi() {
     if (S.session) { $("auth-btn").textContent = "Sair"; $("me-name").textContent = S.session.user?.email?.split("@")[0] || "Conta"; $("me-plan").textContent = "Conectado"; }
     else { $("auth-btn").textContent = "Entrar"; $("me-name").textContent = "Visitante"; $("me-plan").textContent = "Entre para salvar seu histórico"; }
@@ -810,10 +966,11 @@
   $("login-cancel").addEventListener("click", () => ($("login-back").hidden = true));
   $("login-form").addEventListener("submit", async (e) => {
     e.preventDefault();
+    if (!configOk()) { $("login-msg").textContent = MSG_INDISPONIVEL; return; }
     const btn = $("login-submit"); btn.disabled = true; $("login-msg").textContent = "";
     try {
-      const r = await fetch(`${S.config.supabase_url}/auth/v1/token?grant_type=password`, {
-        method: "POST", headers: { apikey: S.config.supabase_anon_key, "content-type": "application/json" },
+      const r = await fetch("/api/auth/login", {
+        method: "POST", headers: { "content-type": "application/json" },
         body: JSON.stringify({ email: $("email").value.trim(), password: $("password").value }),
       });
       const d = await r.json();
@@ -822,7 +979,29 @@
       sessionStorage.setItem("neris.session", JSON.stringify(S.session));
       $("password").value = "";
       $("login-back").hidden = true; updateAuthUi(); toast("Conta conectada.");
-    } catch (err) { $("login-msg").textContent = err.message; }
+    } catch (err) { $("login-msg").textContent = textoSeguro(err); }
+    finally { btn.disabled = false; }
+  });
+
+  $("signup-btn").addEventListener("click", async () => {
+    if (!configOk()) { $("login-msg").textContent = MSG_INDISPONIVEL; return; }
+    const btn = $("signup-btn"); btn.disabled = true; $("login-msg").textContent = "";
+    try {
+      const r = await fetch("/api/auth/signup", {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email: $("email").value.trim(), password: $("password").value }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.msg || d.message || "Não foi possível criar a conta.");
+      if (d.access_token) {
+        S.session = { access_token: d.access_token, user: d.user };
+        sessionStorage.setItem("neris.session", JSON.stringify(S.session));
+        $("password").value = ""; $("login-back").hidden = true; updateAuthUi();
+        toast("Conta criada. Você ganhou 4 dias de uso grátis.");
+      } else {
+        $("login-msg").textContent = "Conta criada. Confirme seu e-mail para entrar.";
+      }
+    } catch (err) { $("login-msg").textContent = textoSeguro(err); }
     finally { btn.disabled = false; }
   });
 
@@ -848,6 +1027,88 @@
   function restoreSession() {
     try { const s = sessionStorage.getItem("neris.session"); if (s) S.session = JSON.parse(s); } catch { sessionStorage.removeItem("neris.session"); }
     updateAuthUi();
+  }
+
+  /* ------------------------------------------------ foto do ambiente */
+  $("camera-btn").addEventListener("click", () => $("camera-input").click());
+  $("camera-input").addEventListener("change", (e) => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!f) return;
+    if (!/^image\//.test(f.type)) { toast("Escolha uma imagem."); return; }
+    if (f.size > 6 * 1024 * 1024) { toast("Foto muito grande (máximo 6 MB)."); return; }
+    const leitor = new FileReader();
+    leitor.onload = () => {
+      S.foto = leitor.result;
+      setStatus("Foto anexada. Diga o que você quer, por exemplo: onde fica melhor o sofá?");
+      $("input").focus();
+    };
+    leitor.readAsDataURL(f);
+  });
+
+  /* ------------------------------------------------ nuvem de voz */
+  let redeOk = navigator.onLine !== false;
+  let nuvemTimer = null;
+  function setRede(ok) { redeOk = ok; atualizaNuvem(); }
+  window.addEventListener("online", () => setRede(true));
+  window.addEventListener("offline", () => setRede(false));
+  function atualizaNuvem() {
+    const n = $("nuvem-back");
+    if (!n) return;
+    const gravando = !!(S.recorder && S.recorder.state === "recording");
+    const falando = !!(S.audio && !S.audio.paused);
+    n.classList.toggle("instavel", !redeOk);
+    n.classList.toggle("ouvindo", gravando);
+    n.classList.toggle("falando", falando);
+    $("nuvem-falar").textContent = gravando ? "Parar" : "Falar";
+    $("nuvem-status").textContent = !redeOk ? "Conexão instável. Eu tento de novo quando a rede voltar."
+      : gravando ? "Estou ouvindo você…"
+      : falando ? "Falando…"
+      : "Toque em Falar e me diga o que precisa, ou volte e digite.";
+  }
+  function nuvemAbrir() {
+    $("nuvem-back").hidden = false;
+    S.voiceMode = true;
+    atualizaNuvem();
+    clearInterval(nuvemTimer);
+    nuvemTimer = setInterval(atualizaNuvem, 400);
+  }
+  function nuvemFechar() {
+    $("nuvem-back").hidden = true;
+    clearInterval(nuvemTimer);
+  }
+  $("nuvem-abrir").addEventListener("click", nuvemAbrir);
+  $("nuvem-fechar").addEventListener("click", nuvemFechar);
+  $("nuvem-falar").addEventListener("click", () => toggleMic());
+  // Olhos acompanham o ponteiro/dedo, e a nuvem se inclina um pouco na direção dele
+  $("nuvem-cena").addEventListener("pointermove", (e) => {
+    const rect = $("nuvem").getBoundingClientRect();
+    const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+    const dx = Math.max(-1, Math.min(1, (e.clientX - cx) / 300));
+    const dy = Math.max(-1, Math.min(1, (e.clientY - cy) / 300));
+    for (const id of ["pup1", "pup2"]) $(id).style.transform = `translate(${dx * 3.5}px, ${dy * 3}px)`;
+    $("nuvem").style.transform = `translate(calc(-50% + ${dx * 14}px), calc(-50% + ${dy * 8}px))`;
+  });
+
+  /* ------------------------------------------------ app instalável */
+  let instalEvt = null;
+  window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); instalEvt = e; $("instalar").hidden = false; });
+  $("instalar").addEventListener("click", async () => {
+    if (!instalEvt) return;
+    instalEvt.prompt();
+    try { await instalEvt.userChoice; } catch {}
+    instalEvt = null; $("instalar").hidden = true;
+  });
+  window.addEventListener("appinstalled", () => { $("instalar").hidden = true; toast("App instalado. Abra pela tela inicial."); });
+  const ehIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const jaInstalado = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  if (ehIos && !jaInstalado) {
+    $("instalar").hidden = false;
+    $("instalar").textContent = "Adicionar à tela inicial";
+    $("instalar").onclick = () => toast("No iPhone: toque em Compartilhar e depois em \"Adicionar à Tela de Início\".");
+  }
+  if ("serviceWorker" in navigator) {
+    addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
   }
 
   /* ------------------------------------------------ inicialização */
@@ -1119,14 +1380,14 @@ function setupThree(mod) {
     renderer.setSize(W, H, false); camera.aspect = W / H; camera.updateProjectionMatrix();
   });
   sizeObs.observe(host);
-  document.addEventListener("visibilitychange", () => { paused = document.hidden; if (!paused) loop(); });
+  document.addEventListener("visibilitychange", () => { paused = document.hidden; if (!paused && !raf) loop(); });
   loop();
 }
 
-let paused = false, last = 0;
+let paused = false, last = 0, raf = 0;
 function loop(now = 0) {
-  if (paused || !renderer) return;
-  requestAnimationFrame(loop);
+  if (paused || !renderer) { raf = 0; return; }
+  raf = requestAnimationFrame(loop);
   // limita a ~30 fps para economizar bateria
   if (now - last < 33) return;
   last = now;
