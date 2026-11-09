@@ -184,8 +184,11 @@
           <div class="metric"><strong id="metric-feedback-yes">—</strong><span>Pesquisa · Sim</span></div>
           <div class="metric"><strong id="metric-feedback-unsure">—</strong><span>Pesquisa · Ainda não sei</span></div>
           <div class="metric"><strong id="metric-feedback-no">—</strong><span>Pesquisa · Não</span></div>
+          <div class="metric"><strong id="metric-brain-neris">—</strong><span>Chamadas Neris · últimos 7 dias</span></div>
+          <div class="metric"><strong id="metric-brain-gemini">—</strong><span>Chamadas Gemini · últimos 7 dias</span></div>
+          <div class="metric"><strong id="metric-brain-claude">—</strong><span>Chamadas Claude · últimos 7 dias</span></div>
         </div>
-        <div id="metrics-note" class="legend">Contas ativas são usuários autenticados com conversa concluída, não visitas. A pesquisa é opcional e não armazena texto da conversa.</div>
+        <div id="metrics-note" class="legend">Contas ativas são usuários autenticados com conversa concluída, não visitas. A pesquisa é opcional e não armazena texto da conversa; os cérebros mostram chamadas concluídas, não agentes autônomos em execução.</div>
       </section>
 
       <section class="panel" style="margin-top:18px">
@@ -419,8 +422,16 @@
           return String(feedback[key]);
         }
 
+        function brainUsageText(usage, brain) {
+          if (usage.status === "demo_mode") return "Modo demo";
+          if (usage.status === "unavailable") return "Indisponível";
+          if (usage.status !== "connected" || usage[brain] === null) return "Não conectado";
+          return String(usage[brain]);
+        }
+
         async function refreshMetrics() {
           const data = await request("/api/admin/metrics");
+          const brainUsage = data.brain_usage_7d || { status: "unavailable", source: "métrica não disponível" };
           byId("metric-leads").textContent = metricText(data.leads);
           byId("metric-orders").textContent = metricText(data.orders);
           byId("metric-customers").textContent = metricText(data.customers);
@@ -431,8 +442,11 @@
           byId("metric-feedback-yes").textContent = feedbackText(data.evolution_feedback, "yes");
           byId("metric-feedback-unsure").textContent = feedbackText(data.evolution_feedback, "not_sure");
           byId("metric-feedback-no").textContent = feedbackText(data.evolution_feedback, "no");
+          byId("metric-brain-neris").textContent = brainUsageText(brainUsage, "neris");
+          byId("metric-brain-gemini").textContent = brainUsageText(brainUsage, "gemini");
+          byId("metric-brain-claude").textContent = brainUsageText(brainUsage, "claude");
           byId("metrics-note").textContent =
-            `Atividade: ${data.chat_users_7d.source || "sem fonte"} · Pesquisa: ${data.evolution_feedback.source || "sem fonte"} · Leads: ${data.leads.source || "sem fonte"} · Pedidos: ${data.orders.source || "sem fonte"}. Usuários ativos são contas autenticadas com conversa concluída; não representam visitas.`;
+            `Atividade: ${data.chat_users_7d.source || "sem fonte"} · Pesquisa: ${data.evolution_feedback.source || "sem fonte"} · Cérebros: ${brainUsage.source || "sem fonte"} · Leads: ${data.leads.source || "sem fonte"} · Pedidos: ${data.orders.source || "sem fonte"}. Usuários ativos são contas autenticadas com conversa concluída; não representam visitas. O painel mostra chamadas concluídas, não agentes autônomos em execução.`;
         }
 
         async function refreshNexus() {

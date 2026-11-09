@@ -107,6 +107,63 @@ test("automatic routing selects topic specialists and has a general fallback", (
   assert.notEqual(routeAgent("Atendimento WhatsApp para cliente").id, "agent-40");
 });
 
+test("account trial status follows the profile trial date instead of the auth creation date", async () => {
+  const originalFetch = globalThis.fetch;
+  const userId = "c0a80101-0000-4000-8000-000000000045";
+  let profile = {
+    id: userId,
+    plano: "Neris 3.5",
+    status_assinatura: "ativo",
+    historico_chat: [],
+    neris_trial_ends_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+  };
+  let selectedProfileFields = "";
+  globalThis.fetch = async (input) => {
+    const url = new URL(input instanceof Request ? input.url : input);
+    if (url.pathname === "/auth/v1/user") {
+      return Response.json({ id: userId, created_at: new Date().toISOString() });
+    }
+    if (url.pathname === "/rest/v1/usuarios_saas") {
+      selectedProfileFields = url.searchParams.get("select") || "";
+      return Response.json([profile]);
+    }
+    throw new Error(`Unexpected Supabase request: ${url.pathname}`);
+  };
+
+  try {
+    const request = () => worker.fetch(
+      new Request("https://chat.neris.nexuscentralja.com.br/api/account", {
+        headers: {
+          origin: "https://chat.neris.nexuscentralja.com.br",
+          authorization: "Bearer test-access-token",
+        },
+      }),
+      {
+        PUBLIC_ORIGINS: "https://chat.neris.nexuscentralja.com.br",
+        PUBLIC_ORIGIN: "https://chat.neris.nexuscentralja.com.br",
+        SUPABASE_URL: "https://supabase.test",
+        SUPABASE_ANON_KEY: "test-public-key",
+      },
+    );
+
+    let response = await request();
+    assert.equal(response.status, 200);
+    let data = await response.json();
+    assert.equal(data.plan, "Neris Pro");
+    assert.equal(data.trial_active, true);
+    assert.match(selectedProfileFields, /neris_trial_ends_at/);
+
+    profile = { ...profile, neris_trial_ends_at: null };
+    response = await request();
+    assert.equal(response.status, 200);
+    data = await response.json();
+    assert.equal(data.plan, "Neris 3.5");
+    assert.equal(data.trial_active, false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("public agent directory reports all 44 agents without exposing instructions", async () => {
   const response = await worker.fetch(
     new Request("https://chat.neris.nexuscentralja.com.br/api/agents"),
@@ -124,6 +181,27 @@ test("public agent directory reports all 44 agents without exposing instructions
     data.agents.find((agent) => agent.id === "agent-40").status,
     "pendente_integracao",
   );
+});
+
+test("public config reports provider availability without exposing provider secrets", async () => {
+  const response = await worker.fetch(
+    new Request("https://chat.neris.nexuscentralja.com.br/api/config", {
+      headers: { origin: "https://chat.neris.nexuscentralja.com.br" },
+    }),
+    {
+      PUBLIC_ORIGINS: "https://chat.neris.nexuscentralja.com.br",
+      PUBLIC_ORIGIN: "https://chat.neris.nexuscentralja.com.br",
+      NERIS_MOCK_MODE: "false",
+      AI: {},
+      Gemini_API: "gemini-config-secret",
+      ANTHROPIC_API_KEY: "anthropic-config-secret",
+    },
+  );
+
+  assert.equal(response.status, 200);
+  const data = await response.json();
+  assert.deepEqual(data.brains, { neris: true, gemini: true, claude: true });
+  assert.equal(JSON.stringify(data).includes("config-secret"), false);
 });
 
 test("backend-dependent APIs report unavailable until the Python service is configured", async () => {
@@ -202,8 +280,10 @@ test("project generation is proxied to the authenticated Python endpoint", async
 test("chat runs the selected specialist model then Neris primary model", async () => {
   const originalFetch = globalThis.fetch;
   const inferenceCalls = [];
+  const recordedActivity = [];
+  const recordedBrains = [];
   const userId = "c0a80101-0000-4000-8000-000000000001";
-  globalThis.fetch = async (input) => {
+  globalThis.fetch = async (input, init) => {
     const url = new URL(input instanceof Request ? input.url : input);
     if (url.pathname === "/auth/v1/user") {
       return Response.json({ id: userId });
@@ -220,6 +300,14 @@ test("chat runs the selected specialist model then Neris primary model", async (
       return Response.json([{ allowed: true, daily_remaining: 49, monthly_remaining: 999 }]);
     }
     if (url.pathname === "/rest/v1/rpc/append_neris_chat_turn") {
+      return new Response(null, { status: 204 });
+    }
+    if (url.pathname === "/rest/v1/rpc/record_neris_chat_activity") {
+      recordedActivity.push(JSON.parse(init?.body || "{}"));
+      return new Response(null, { status: 204 });
+    }
+    if (url.pathname === "/rest/v1/rpc/record_neris_brain_activity") {
+      recordedBrains.push(JSON.parse(init?.body || "{}"));
       return new Response(null, { status: 204 });
     }
     throw new Error(`Unexpected Supabase request: ${url.pathname}`);
@@ -262,6 +350,7 @@ test("chat runs the selected specialist model then Neris primary model", async (
     const data = await response.json();
     assert.equal(data.response, "Neris final answer");
     assert.equal(data.agent.id, "agent-08");
+    assert.equal(data.brain.id, "neris");
     assert.deepEqual(data.brains, [
       "@cf/meta/llama-3.2-3b-instruct",
       "@cf/meta/llama-3.1-8b-instruct",
@@ -270,12 +359,330 @@ test("chat runs the selected specialist model then Neris primary model", async (
       "@cf/meta/llama-3.2-3b-instruct",
       "@cf/meta/llama-3.1-8b-instruct",
     ]);
+    assert.deepEqual(recordedActivity, [{ target_user_id: userId }]);
+    assert.deepEqual(recordedBrains, [{
+      target_user_id: userId,
+      selected_brain: "neris",
+    }]);
     assert.equal(
       inferenceCalls[1].input.messages.some((message) =>
         message.content.includes("Stock specialist analysis"),
       ),
       true,
     );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("chat routes Gemini and Claude through server-side provider secrets", async () => {
+  const originalFetch = globalThis.fetch;
+  const userId = "c0a80101-0000-4000-8000-000000000047";
+  const providerCalls = [];
+  const recordedBrains = [];
+  globalThis.fetch = async (input, init) => {
+    const url = new URL(input instanceof Request ? input.url : input);
+    if (url.pathname === "/auth/v1/user") {
+      return Response.json({ id: userId });
+    }
+    if (url.pathname === "/rest/v1/usuarios_saas") {
+      return Response.json([{
+        id: userId,
+        plano: "Neris 3.5",
+        status_assinatura: "ativo",
+        historico_chat: [],
+      }]);
+    }
+    if (url.pathname === "/rest/v1/rpc/consume_neris_chat_quota") {
+      return Response.json([{ allowed: true, daily_remaining: 49, monthly_remaining: 999 }]);
+    }
+    if (url.pathname === "/rest/v1/rpc/append_neris_chat_turn") {
+      return new Response(null, { status: 204 });
+    }
+    if (url.pathname === "/rest/v1/rpc/record_neris_chat_activity") {
+      return new Response(null, { status: 204 });
+    }
+    if (url.pathname === "/rest/v1/rpc/record_neris_brain_activity") {
+      recordedBrains.push(JSON.parse(init?.body || "{}"));
+      return new Response(null, { status: 204 });
+    }
+    if (
+      url.hostname === "generativelanguage.googleapis.com" ||
+      url.hostname === "api.anthropic.com"
+    ) {
+      providerCalls.push({
+        url,
+        headers: new Headers(init?.headers),
+        body: JSON.parse(init?.body || "{}"),
+      });
+      return url.hostname === "generativelanguage.googleapis.com"
+        ? Response.json({
+            candidates: [{ content: { parts: [{ text: "Resposta Gemini" }] } }],
+          })
+        : Response.json({
+            content: [{ type: "text", text: "Resposta Claude" }],
+          });
+    }
+    throw new Error(`Unexpected provider or Supabase request: ${url.pathname}`);
+  };
+
+  try {
+    for (const provider of [
+      {
+        brain: "gemini",
+        env: {
+          Gemini_API: "gemini-secret-for-test",
+          NERIS_GEMINI_MODEL: "gemini-test",
+        },
+        expectedResponse: "Resposta Gemini",
+      },
+      {
+        brain: "claude",
+        env: {
+          ANTHROPIC_API_KEY: "anthropic-secret-for-test",
+          NERIS_ANTHROPIC_MODEL: "claude-test",
+        },
+        expectedResponse: "Resposta Claude",
+      },
+    ]) {
+      const response = await worker.fetch(
+        new Request("https://chat.neris.nexuscentralja.com.br/api/chat", {
+          method: "POST",
+          headers: {
+            origin: "https://chat.neris.nexuscentralja.com.br",
+            authorization: "Bearer user-session-token",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            messages: [{ role: "user", content: "Ajude a organizar meu projeto" }],
+            brain: provider.brain,
+          }),
+        }),
+        {
+          PUBLIC_ORIGINS: "https://chat.neris.nexuscentralja.com.br",
+          PUBLIC_ORIGIN: "https://chat.neris.nexuscentralja.com.br",
+          NERIS_MOCK_MODE: "false",
+          SUPABASE_URL: "https://supabase.test",
+          SUPABASE_ANON_KEY: "test-public-key",
+          ...provider.env,
+        },
+      );
+
+      assert.equal(response.status, 200);
+      const responseBody = await response.json();
+      assert.equal(responseBody.response, provider.expectedResponse);
+      assert.equal(responseBody.brain.id, provider.brain);
+      assert.equal(JSON.stringify(responseBody).includes("secret-for-test"), false);
+    }
+
+    assert.equal(providerCalls.length, 2);
+    const geminiCall = providerCalls[0];
+    assert.equal(geminiCall.url.pathname, "/v1beta/models/gemini-test:generateContent");
+    assert.equal(geminiCall.url.search, "");
+    assert.equal(geminiCall.headers.get("x-goog-api-key"), "gemini-secret-for-test");
+    assert.equal(geminiCall.body.contents[0].role, "user");
+    assert.equal(geminiCall.body.generationConfig.maxOutputTokens, 512);
+
+    const claudeCall = providerCalls[1];
+    assert.equal(claudeCall.url.pathname, "/v1/messages");
+    assert.equal(claudeCall.headers.get("x-api-key"), "anthropic-secret-for-test");
+    assert.equal(claudeCall.headers.get("anthropic-version"), "2023-06-01");
+    assert.equal(claudeCall.body.model, "claude-test");
+    assert.equal(claudeCall.body.messages[0].role, "user");
+
+    assert.deepEqual(recordedBrains, [
+      { target_user_id: userId, selected_brain: "gemini" },
+      { target_user_id: userId, selected_brain: "claude" },
+    ]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("chat rejects an unconfigured provider before reserving quota", async () => {
+  const originalFetch = globalThis.fetch;
+  const userId = "c0a80101-0000-4000-8000-000000000048";
+  let quotaReserved = false;
+  globalThis.fetch = async (input) => {
+    const url = new URL(input instanceof Request ? input.url : input);
+    if (url.pathname === "/auth/v1/user") {
+      return Response.json({ id: userId });
+    }
+    if (url.pathname === "/rest/v1/usuarios_saas") {
+      return Response.json([{
+        id: userId,
+        plano: "Neris 3.5",
+        status_assinatura: "ativo",
+        historico_chat: [],
+      }]);
+    }
+    if (url.pathname === "/rest/v1/rpc/consume_neris_chat_quota") {
+      quotaReserved = true;
+      return Response.json([{ allowed: true, daily_remaining: 49, monthly_remaining: 999 }]);
+    }
+    throw new Error(`Unexpected request: ${url.pathname}`);
+  };
+
+  try {
+    const response = await worker.fetch(
+      new Request("https://chat.neris.nexuscentralja.com.br/api/chat", {
+        method: "POST",
+        headers: {
+          origin: "https://chat.neris.nexuscentralja.com.br",
+          authorization: "Bearer user-session-token",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: [{ role: "user", content: "Uma pergunta" }],
+          brain: "claude",
+        }),
+      }),
+      {
+        PUBLIC_ORIGINS: "https://chat.neris.nexuscentralja.com.br",
+        PUBLIC_ORIGIN: "https://chat.neris.nexuscentralja.com.br",
+        NERIS_MOCK_MODE: "false",
+        SUPABASE_URL: "https://supabase.test",
+        SUPABASE_ANON_KEY: "test-public-key",
+        Gemini_API: "gemini-secret-for-test",
+      },
+    );
+
+    assert.equal(response.status, 503);
+    assert.equal((await response.json()).error, "brain_not_configured");
+    assert.equal(quotaReserved, false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("chat refunds quota when an external brain rejects the request", async () => {
+  const originalFetch = globalThis.fetch;
+  const userId = "c0a80101-0000-4000-8000-000000000049";
+  let quotaRefunded = false;
+  globalThis.fetch = async (input) => {
+    const url = new URL(input instanceof Request ? input.url : input);
+    if (url.pathname === "/auth/v1/user") {
+      return Response.json({ id: userId });
+    }
+    if (url.pathname === "/rest/v1/usuarios_saas") {
+      return Response.json([{
+        id: userId,
+        plano: "Neris 3.5",
+        status_assinatura: "ativo",
+        historico_chat: [],
+      }]);
+    }
+    if (url.pathname === "/rest/v1/rpc/consume_neris_chat_quota") {
+      return Response.json([{ allowed: true, daily_remaining: 49, monthly_remaining: 999 }]);
+    }
+    if (url.pathname === "/v1/messages") {
+      return Response.json({ error: { message: "provider detail must not be returned" } }, { status: 429 });
+    }
+    if (url.pathname === "/rest/v1/rpc/refund_neris_chat_quota") {
+      quotaRefunded = true;
+      return Response.json(true);
+    }
+    throw new Error(`Unexpected request: ${url.pathname}`);
+  };
+
+  try {
+    const response = await worker.fetch(
+      new Request("https://chat.neris.nexuscentralja.com.br/api/chat", {
+        method: "POST",
+        headers: {
+          origin: "https://chat.neris.nexuscentralja.com.br",
+          authorization: "Bearer user-session-token",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: [{ role: "user", content: "Uma pergunta" }],
+          brain: "claude",
+        }),
+      }),
+      {
+        PUBLIC_ORIGINS: "https://chat.neris.nexuscentralja.com.br",
+        PUBLIC_ORIGIN: "https://chat.neris.nexuscentralja.com.br",
+        NERIS_MOCK_MODE: "false",
+        SUPABASE_URL: "https://supabase.test",
+        SUPABASE_ANON_KEY: "test-public-key",
+        ANTHROPIC_API_KEY: "anthropic-secret-for-test",
+      },
+    );
+
+    assert.equal(response.status, 502);
+    const body = await response.json();
+    assert.equal(body.error, "brain_provider_unavailable");
+    assert.equal(body.credit_refunded, true);
+    assert.equal(body.message.includes("provider detail"), false);
+    assert.equal(quotaRefunded, true);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("evolution feedback stores only an authenticated user's selected answer", async () => {
+  const originalFetch = globalThis.fetch;
+  const userId = "c0a80101-0000-4000-8000-000000000046";
+  let submittedFeedback;
+  globalThis.fetch = async (input, init) => {
+    const url = new URL(input instanceof Request ? input.url : input);
+    if (url.pathname === "/auth/v1/user") return Response.json({ id: userId });
+    if (url.pathname === "/rest/v1/usuarios_saas") {
+      return Response.json([{
+        id: userId,
+        plano: "Neris 3.5",
+        status_assinatura: "ativo",
+        historico_chat: [],
+      }]);
+    }
+    if (url.pathname === "/rest/v1/rpc/submit_neris_evolution_feedback") {
+      submittedFeedback = JSON.parse(init.body);
+      return new Response(null, { status: 204 });
+    }
+    throw new Error(`Unexpected Supabase request: ${url.pathname}`);
+  };
+
+  try {
+    const response = await worker.fetch(
+      new Request("https://chat.neris.nexuscentralja.com.br/api/evolution-feedback", {
+        method: "POST",
+        headers: {
+          origin: "https://chat.neris.nexuscentralja.com.br",
+          authorization: "Bearer user-token",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ answer: "not_sure" }),
+      }),
+      {
+        PUBLIC_ORIGINS: "https://chat.neris.nexuscentralja.com.br",
+        PUBLIC_ORIGIN: "https://chat.neris.nexuscentralja.com.br",
+        SUPABASE_URL: "https://supabase.test",
+        SUPABASE_ANON_KEY: "test-public-key",
+      },
+    );
+    assert.equal(response.status, 200);
+    assert.deepEqual(submittedFeedback, {
+      target_user_id: userId,
+      feedback_answer: "not_sure",
+    });
+    assert.deepEqual(await response.json(), { submitted: true });
+
+    const invalid = await worker.fetch(
+      new Request("https://chat.neris.nexuscentralja.com.br/api/evolution-feedback", {
+        method: "POST",
+        headers: {
+          origin: "https://chat.neris.nexuscentralja.com.br",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ answer: "conversation transcript" }),
+      }),
+      {
+        PUBLIC_ORIGINS: "https://chat.neris.nexuscentralja.com.br",
+        PUBLIC_ORIGIN: "https://chat.neris.nexuscentralja.com.br",
+      },
+    );
+    assert.equal(invalid.status, 422);
+    assert.equal((await invalid.json()).error, "unsupported_feedback_answer");
   } finally {
     globalThis.fetch = originalFetch;
   }

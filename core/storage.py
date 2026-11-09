@@ -141,6 +141,27 @@ class SupabaseRepository:
             "evolution_feedback": feedback_counts,
         }
 
+    async def neris_admin_brain_usage_metrics(self) -> dict[str, int] | None:
+        if mock_mode():
+            return None
+
+        response = await asyncio.to_thread(
+            lambda: self._service_client()
+            .rpc("get_neris_admin_brain_usage_metrics")
+            .execute()
+        )
+        metrics = response.data
+        if not isinstance(metrics, dict):
+            raise RuntimeError("Supabase returned invalid Neris brain usage metrics.")
+
+        brain_counts = {}
+        for brain in ("neris", "gemini", "claude"):
+            count = metrics.get(brain)
+            if not isinstance(count, int) or isinstance(count, bool) or count < 0:
+                raise RuntimeError("Supabase returned invalid Neris brain usage metrics.")
+            brain_counts[brain] = count
+        return brain_counts
+
     async def add_lead(self, lead: dict[str, Any]) -> dict[str, Any]:
         required_fields = ("empresa_nome",)
         if any(not lead.get(field, "").strip() for field in required_fields):

@@ -68,3 +68,50 @@ class SupabaseRepositoryUsageMetricsTests(unittest.IsolatedAsyncioTestCase):
         repository = SupabaseRepository()
         with patch.dict(os.environ, {"NERIS_MOCK_MODE": "true"}):
             self.assertIsNone(await repository.neris_admin_usage_metrics())
+
+    async def test_returns_validated_brain_usage_counts(self):
+        metrics = {"neris": 8, "gemini": 3, "claude": 1}
+
+        class FakeQuery:
+            def execute(self):
+                return type("Response", (), {"data": metrics})()
+
+        class FakeClient:
+            def rpc(self, function_name):
+                self.function_name = function_name
+                return FakeQuery()
+
+        repository = SupabaseRepository()
+        client = FakeClient()
+        with (
+            patch.dict(os.environ, {"NERIS_MOCK_MODE": "false"}),
+            patch.object(repository, "_service_client", return_value=client),
+        ):
+            result = await repository.neris_admin_brain_usage_metrics()
+
+        self.assertEqual(client.function_name, "get_neris_admin_brain_usage_metrics")
+        self.assertEqual(result, metrics)
+
+    async def test_rejects_invalid_brain_usage_counts(self):
+        metrics = {"neris": 1, "gemini": -1, "claude": 0}
+
+        class FakeQuery:
+            def execute(self):
+                return type("Response", (), {"data": metrics})()
+
+        class FakeClient:
+            def rpc(self, _function_name):
+                return FakeQuery()
+
+        repository = SupabaseRepository()
+        with (
+            patch.dict(os.environ, {"NERIS_MOCK_MODE": "false"}),
+            patch.object(repository, "_service_client", return_value=FakeClient()),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "invalid"):
+                await repository.neris_admin_brain_usage_metrics()
+
+    async def test_does_not_read_brain_usage_in_mock_mode(self):
+        repository = SupabaseRepository()
+        with patch.dict(os.environ, {"NERIS_MOCK_MODE": "true"}):
+            self.assertIsNone(await repository.neris_admin_brain_usage_metrics())

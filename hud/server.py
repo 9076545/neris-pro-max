@@ -636,6 +636,13 @@ async def admin_metrics() -> dict[str, object]:
             "responses": None,
             "source": "Neris mock mode",
         }
+        brain_usage_7d: dict[str, object] = {
+            "status": "demo_mode",
+            "neris": None,
+            "gemini": None,
+            "claude": None,
+            "source": "Neris mock mode",
+        }
     else:
         try:
             recent_leads = await repository.recent_leads(500)
@@ -690,6 +697,24 @@ async def admin_metrics() -> dict[str, object]:
                 "responses": None,
                 "source": "Supabase Neris · aplique a migration de métricas e feedback",
             }
+        try:
+            brain_usage = await repository.neris_admin_brain_usage_metrics()
+            if brain_usage is None:
+                raise RuntimeError("Neris brain usage metrics are unavailable outside mock mode.")
+            brain_usage_7d = {
+                "status": "connected",
+                **brain_usage,
+                "source": "Supabase Neris · chamadas concluídas nos últimos 7 dias",
+            }
+        except (RuntimeError, httpx.HTTPError, PostgrestAPIError, ValueError) as exc:
+            logger.error("Neris brain usage metrics unavailable: error_type=%s", type(exc).__name__)
+            brain_usage_7d = {
+                "status": "unavailable",
+                "neris": None,
+                "gemini": None,
+                "claude": None,
+                "source": "Supabase Neris · aplique a migration de atividade dos cérebros",
+            }
     return {
         "leads": leads,
         "orders": orders,
@@ -698,6 +723,7 @@ async def admin_metrics() -> dict[str, object]:
         "visits": unavailable,
         "chat_users_7d": chat_users,
         "evolution_feedback": evolution_feedback,
+        "brain_usage_7d": brain_usage_7d,
     }
 
 
