@@ -19,6 +19,7 @@ import uvicorn
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, PlainTextResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 import httpx
 from postgrest.exceptions import APIError as PostgrestAPIError
 from pydantic import BaseModel, Field
@@ -185,6 +186,11 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["Authorization", "Content-Type"],
 )
+app.mount(
+    "/static",
+    StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")),
+    name="static",
+)
 
 
 class AgentTaskRequest(BaseModel):
@@ -195,6 +201,7 @@ class ProjectBuildRequest(BaseModel):
     name: str = Field(min_length=1, max_length=80)
     kind: Literal["website", "saas", "game"]
     brief: str = Field(min_length=1, max_length=4000)
+    mode: Literal["xperte-jogos", "criador-saas"] | None = None
     image_base64: str | None = Field(default=None, max_length=1_400_000)
     image_mime_type: str | None = None
     image_consent: bool = False
@@ -837,7 +844,7 @@ async def analyze_neris_offer() -> dict[str, object]:
         "Neris 3.5": {"price_brl_month": 0, "messages_per_day": 50},
         "Neris Pro": {"price_brl_month": 29.90, "messages_per_day": 300},
         "Neris 5.6": {"price_brl_month": 59.90, "messages_per_day": 1000},
-        "Neris Ultra Max": {"price_brl_month": 99.90, "messages_per_day": 3333},
+        "Neris Ultra Max": {"price_brl_month": 150.00, "messages_per_day": 3333},
     }
     advice = await runtime.submit(
         "agent-37",
@@ -991,17 +998,43 @@ async def generate_customer_project(
 ) -> StreamingResponse:
     if user.get("status_assinatura", "ativo") != "ativo":
         raise HTTPException(status_code=403, detail="A assinatura precisa estar ativa.")
+    if body.mode:
+        expected_kind = {"xperte-jogos": "game", "criador-saas": "saas"}[body.mode]
+        if body.kind != expected_kind:
+            raise HTTPException(status_code=422, detail="O modo CodesX não corresponde ao tipo de projeto.")
+        if (
+            user.get("trial_active") is True
+            or user.get("plano") not in {"Neris Pro", "Neris Ultra Max"}
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail="Os modos CodesX exigem uma assinatura paga ativa Neris Pro ou Neris Ultra Max.",
+            )
     if user.get("plano") not in {"Neris Pro", "Neris 5.6", "Neris Ultra Max"}:
         raise HTTPException(
             status_code=403,
             detail="A criação de projetos requer Neris Pro, Neris 5.6 ou Neris Ultra Max.",
         )
     studio: ProjectStudio = app.state.project_studio
+    brief = body.brief
+    if body.mode == "xperte-jogos":
+        brief = (
+            "CodesX Xperte Jogos: crie um jogo web funcional, com controles claros, regras, "
+            "estados de vitória/derrota e instruções para executar e testar.\n\n"
+            f"Brief do cliente:\n{body.brief}"
+        )[:4000]
+    elif body.mode == "criador-saas":
+        brief = (
+            "CodesX Criador SaaS com Assessoria: estruture um produto SaaS funcional, com "
+            "arquitetura coerente, interface, fluxos principais, validações e instruções "
+            "para executar e testar.\n\n"
+            f"Brief do cliente:\n{body.brief}"
+        )[:4000]
     try:
         project = await studio.generate(
             name=body.name,
             kind=body.kind,
-            brief=body.brief,
+            brief=brief,
             image_base64=body.image_base64,
             image_mime_type=body.image_mime_type,
             image_consent=body.image_consent,

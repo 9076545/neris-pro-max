@@ -9,16 +9,16 @@
       :root {
         color-scheme: dark;
         font-family: Inter, ui-sans-serif, system-ui, "Segoe UI", sans-serif;
-        background: #080b12;
+        background: #070707;
         color: #e7f2ff;
-        --panel: #101722;
-        --line: #253348;
-        --cyan: #56e5f2;
-        --violet: #aa88ff;
-        --muted: #8a9aaf;
+        --panel: #11100f;
+        --line: #38241b;
+        --cyan: #ff6a00;
+        --violet: #ff2a1f;
+        --muted: #aaa39d;
       }
       * { box-sizing: border-box; }
-      body { margin: 0; min-width: 320px; background: radial-gradient(ellipse at 14% 0%, #17233d 0, #080b12 48rem); }
+      body { margin: 0; min-width: 320px; background: radial-gradient(ellipse at 14% 0%, #2a1209 0, #070707 48rem); }
       button, input, select, textarea { font: inherit; }
       button { cursor: pointer; }
       .shell { width: min(1500px, 100% - 32px); margin: 0 auto; padding: 24px 0 42px; }
@@ -46,7 +46,7 @@
       .office-wrap { padding: 14px; }
       .office { display: grid; grid-template-columns: repeat(7, minmax(65px, 1fr)); gap: 8px; }
       .desk { min-height: 66px; border: 1px solid #263a48; border-radius: 8px; background: #101c26; padding: 8px 6px; text-align: center; position: relative; }
-      .desk::before { content: ""; display: block; width: 25px; height: 17px; margin: 0 auto 5px; border: 1px solid #355a65; background: #142b34; box-shadow: inset 0 -4px #0a1218; image-rendering: pixelated; }
+      .desk::before { content: ""; display: block; width: 25px; height: 17px; margin: 0 auto 5px; border: 1px solid #76401e; border-radius: 3px; background: linear-gradient(145deg, #392113, #17100c); box-shadow: inset 0 -4px #0a0807; }
       .desk[data-status="running"] { border-color: #56e5f2; box-shadow: inset 0 0 14px #56e5f211; }
       .desk[data-status="running"]::before { background: #17424a; box-shadow: 0 0 11px #56e5f288, inset 0 -4px #10242b; }
       .desk[data-status="error"] { border-color: #ff6d7a; }
@@ -93,13 +93,56 @@
       .header-actions { display: flex; align-items: center; gap: 14px; }
       .header-links { display: flex; flex-wrap: wrap; gap: 8px; }
       .central-office { margin: 18px 0; }
-      .central-office-frame { display: block; width: 100%; height: min(1050px, 82vh); min-height: 680px; border: 0; background: #14121f; }
+      .office-home { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(310px, .65fr); gap: 14px; padding: 14px; }
+      .office-scene-shell { min-width: 0; }
+      .office-stage { position: relative; height: min(680px, 70vh); min-height: 430px; overflow: hidden; border: 1px solid #5b301c; border-radius: 12px; background: radial-gradient(ellipse at 50% 70%, #271209, #080808 70%); }
+      #office3d { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+      #office3d:active { cursor: grabbing; }
+      .office-brand-tag { position: absolute; top: 14px; left: 16px; pointer-events: none; color: #fff3e8; font: 600 11px/1.5 ui-monospace, Consolas, monospace; letter-spacing: .14em; text-shadow: 0 2px 12px #000; }
+      .office-3d-status { position: absolute; right: 12px; bottom: 12px; max-width: 70%; border: 1px solid #58301c; border-radius: 8px; padding: 7px 10px; background: #090807dd; color: #f0c4a4; font-size: 10px; }
+      .office-3d-status[data-state="error"] { color: #ff929a; border-color: #9c2929; }
+      .office-camera { position: absolute; right: 12px; top: 12px; }
+      .office-agent-tooltip { position: absolute; z-index: 2; transform: translate(-50%, -110%); width: min(250px, 70%); padding: 9px 11px; border: 1px solid #ff6a00; border-radius: 8px; background: #090807ed; color: #e7e0da; box-shadow: 0 0 24px #ff6a0033; pointer-events: none; font-size: 10px; line-height: 1.45; }
+      .office-agent-tooltip[hidden] { display: none; }
+      .office-agent-tooltip strong, .office-agent-tooltip span, .office-agent-tooltip small { display: block; }
+      .office-agent-tooltip strong { color: #fff3e8; font-size: 11px; }
+      .office-agent-tooltip small { margin-top: 4px; color: #ffad75; }
+      .office-floor-buttons { display: flex; flex-wrap: wrap; gap: 7px; padding-top: 10px; }
+      .floor-button, .floor-agent { border: 1px solid #432819; border-radius: 8px; background: #100e0c; color: #e7e0da; padding: 8px 10px; }
+      .floor-button[aria-pressed="true"], .floor-button:hover, .floor-agent:hover { border-color: var(--cyan); box-shadow: 0 0 16px #ff6a0029; }
+      .office-intel { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+      .office-card { border: 1px solid var(--line); border-radius: 10px; background: linear-gradient(145deg, #15110e, #0b0a09); padding: 13px; }
+      .company-banner { display: grid; gap: 5px; border-color: #9c431a; background: radial-gradient(ellipse at 100% 0%, #49200f, #100c09 72%); box-shadow: inset 0 0 28px #ff5a1020; }
+      .company-banner small { color: #ff9a54; font-size: 9px; letter-spacing: .16em; }
+      .company-banner strong { color: #fff3e8; font-size: 14px; letter-spacing: .07em; }
+      .company-banner span { color: #c3b9b1; font-size: 10px; }
+      .office-card h3 { margin: 0 0 8px; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
+      .diagnostic-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; margin-top: 10px; }
+      .diagnostic-stat { padding: 9px; border: 1px solid #38241b; border-radius: 8px; background: #090807; }
+      .diagnostic-stat strong, .diagnostic-stat span { display: block; }
+      .diagnostic-stat strong { color: var(--cyan); font-size: 18px; }
+      .diagnostic-stat span { color: var(--muted); font-size: 9px; text-transform: uppercase; }
+      #diagnostic-summary { color: #c3b9b1; font-size: 11px; line-height: 1.5; }
+      #diagnostic-date { display: block; margin-top: 5px; color: var(--muted); font-size: 9px; }
+      #office-floor-agents { display: grid; gap: 6px; max-height: 185px; overflow: auto; }
+      .floor-agent { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; text-align: left; }
+      .floor-agent[data-status="running"] { border-color: #a64b13; }
+      .floor-agent[data-status="error"] { border-color: #8e2525; }
+      .floor-agent span { color: var(--muted); font-size: 9px; }
+      #office-agent-detail { min-height: 86px; color: #c3b9b1; font-size: 10px; line-height: 1.5; }
+      #office-agent-detail strong { display: block; margin-bottom: 4px; color: #fff; font-size: 12px; }
+      #office-agent-detail p { margin: 4px 0; }
+      #office-agent-detail small { color: var(--muted); }
+      .office-shortcuts { display: flex; flex-wrap: wrap; gap: 7px; }
+      .office-shortcuts a { color: #ffb078; font-size: 10px; text-decoration: none; }
+      .office-shortcuts a:hover { color: #fff; text-decoration: underline; }
       #login-error, #task-error { min-height: 17px; color: #ff929a; font-size: 11px; margin-top: 8px; }
       .muted { color: var(--muted); font-size: 11px; }
       @media (max-width: 850px) {
-        .hero, .bottom { grid-template-columns: 1fr; }
+        .hero, .bottom, .office-home { grid-template-columns: 1fr; }
         .office { grid-template-columns: repeat(5, minmax(52px, 1fr)); }
         .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .office-stage { height: min(560px, 62vh); min-height: 360px; }
       }
       @media (max-width: 480px) {
         .shell { width: min(100% - 20px, 1500px); padding-top: 14px; }
@@ -117,14 +160,14 @@
         <div class="brand">
           <div class="brand-mark" aria-hidden="true"></div>
           <div>
-            <h1>Neris Pro Max</h1>
-            <p class="eyebrow">Painel administrativo privado</p>
+            <h1>NEXUS · CENTRAL JA</h1>
+            <p class="eyebrow">NERIS PRO MAX · PAINEL ADMINISTRATIVO PRIVADO</p>
           </div>
         </div>
         <div class="header-actions">
           <div class="connection"><span id="connection-led" class="led"></span><span id="connection-label">Desconectado</span></div>
           <nav class="header-links" aria-label="Links do ecossistema">
-            <a class="button secondary" href="#central-office">Escritório pixelado Central JA ↓</a>
+            <a class="button secondary" href="#central-office">Escritório 3D ↓</a>
             <a class="button secondary" href="https://neris.nexuscentralja.com.br/" target="_blank" rel="noopener noreferrer">Landing da Neris ↗</a>
             <a class="button secondary" href="https://chat.neris.nexuscentralja.com.br/" target="_blank" rel="noopener noreferrer">Chat público ↗</a>
           </nav>
@@ -132,22 +175,61 @@
         </div>
       </header>
 
-      <section class="panel central-office" id="central-office" aria-label="Escritório pixelado da Central JA">
+      <section class="panel central-office" id="central-office" aria-label="Escritório 3D Nexus, Central JA e Neris Pro Max">
         <div class="panel-head">
-          <h2>Escritório pixelado · Central JA</h2>
-          <a class="button secondary" href="https://nexuscentralja.com.br/escritorio/" target="_blank" rel="noopener noreferrer">Abrir em outra aba ↗</a>
+          <h2>Escritório Nexus · Central JA · Neris Pro Max</h2>
+          <span class="muted">ESTADOS CONECTADOS AO RUNTIME ADMINISTRATIVO</span>
         </div>
-        <iframe
-          class="central-office-frame"
-          src="https://nexuscentralja.com.br/escritorio/"
-          title="Escritório pixelado da Central JA"
-          loading="lazy"
-          referrerpolicy="strict-origin-when-cross-origin"
-          allow="microphone"
-        ></iframe>
+        <div class="office-home">
+          <div class="office-scene-shell">
+            <div class="office-stage">
+              <canvas id="office3d" aria-label="Prédio 3D da NEXUS, Central JA e Neris Pro Max"></canvas>
+              <span class="office-brand-tag">NEXUS · CENTRAL JA · NERIS PRO MAX<br>TORRE DE OPERAÇÕES</span>
+              <button id="office-camera-mode" class="button secondary office-camera" type="button" aria-pressed="false">Entrar no andar</button>
+              <div id="office-agent-tooltip" class="office-agent-tooltip" hidden>
+                <strong></strong><span></span><small></small>
+              </div>
+              <span id="office3d-status" class="office-3d-status" role="status">Carregando cena 3D…</span>
+            </div>
+            <nav id="office-floor-buttons" class="office-floor-buttons" aria-label="Selecionar andar"></nav>
+          </div>
+          <aside class="office-intel" aria-label="Resumo operacional">
+            <section class="office-card company-banner">
+              <small>ECOSSISTEMA OPERACIONAL</small>
+              <strong>NEXUS · CENTRAL JA · NERIS PRO MAX</strong>
+              <span>Inteligência, atendimento e operações em um único escritório.</span>
+            </section>
+            <section class="office-card">
+              <h3>Diagnóstico de hoje</h3>
+              <p id="diagnostic-summary">Aguardando autenticação para carregar os estados e registros reais do serviço.</p>
+              <small id="diagnostic-date">Os dados são fornecidos pelo runtime Neris.</small>
+              <div class="diagnostic-stats">
+                <div class="diagnostic-stat"><strong id="diagnostic-running">—</strong><span>Executando agora</span></div>
+                <div class="diagnostic-stat"><strong id="diagnostic-waiting">—</strong><span>Aguardando tarefa</span></div>
+                <div class="diagnostic-stat"><strong id="diagnostic-errors">—</strong><span>Erros registrados hoje</span></div>
+                <div class="diagnostic-stat"><strong id="diagnostic-offline">—</strong><span>Offline</span></div>
+              </div>
+            </section>
+            <section class="office-card">
+              <h3 id="office-floor-heading">Andar 1 · Núcleo 1</h3>
+              <p id="office-floor-summary" class="muted">Aguardando agentes reais do servidor.</p>
+              <div id="office-floor-agents"></div>
+            </section>
+            <section id="office-agent-detail" class="office-card" aria-live="polite">
+              Selecione um agente para ver o status e o último registro recebido.
+            </section>
+            <nav class="office-card office-shortcuts" aria-label="Áreas do escritório">
+              <a href="#agents-panel">Agentes e tarefas</a>
+              <a href="#metrics-panel">Métricas</a>
+              <a href="#operations-panel">Operações Android</a>
+              <a href="#sales-panel">Vendas e leads</a>
+              <a href="#logs-panel">Console e logs</a>
+            </nav>
+          </aside>
+        </div>
       </section>
 
-      <section class="hero">
+      <section class="hero" id="agents-panel">
         <article class="panel">
           <div class="panel-head"><h2>Avatar de operação</h2><span class="muted">INTERFACE ADMIN</span></div>
           <div id="avatar-stage"><span class="avatar-caption">NERIS // CORE</span></div>
@@ -158,7 +240,7 @@
           </div>
         </article>
         <article class="panel">
-          <div class="panel-head"><h2>Colmeia Neris</h2><span class="muted">VISÃO DO PROCESSO ADMINISTRATIVO ATUAL</span></div>
+          <div class="panel-head"><h2>Estado dos agentes</h2><span class="muted">STATUS DO RUNTIME FASTAPI</span></div>
           <div class="office-wrap"><div id="office" class="office" aria-live="polite"></div></div>
           <div class="legend"><span><b class="busy"></b>Executando tarefa</span><span><b></b>Online, aguardando tarefa</span><span><b class="fault"></b>Erro</span><span id="office-note">Aguardando autenticação</span></div>
         </article>
@@ -171,7 +253,7 @@
         <div id="nexus-events" class="nexus-events"><p class="muted">Autentique-se para consultar eventos recentes.</p></div>
       </section>
 
-      <section class="panel" style="margin-top:18px">
+      <section class="panel" id="metrics-panel" style="margin-top:18px">
         <div class="panel-head"><h2>Métricas verificadas</h2><span class="muted">SEM ESTIMATIVAS</span></div>
         <div class="metrics">
           <div class="metric"><strong id="metric-leads">—</strong><span>Leads recentes carregados (máx. 500)</span></div>
@@ -191,7 +273,7 @@
         <div id="metrics-note" class="legend">Contas ativas são usuários autenticados com conversa concluída, não visitas. A pesquisa é opcional e não armazena texto da conversa; os cérebros mostram chamadas concluídas, não agentes autônomos em execução.</div>
       </section>
 
-      <section class="panel" style="margin-top:18px">
+      <section class="panel" id="operations-panel" style="margin-top:18px">
         <div class="panel-head"><h2>ARTEMIS · Android</h2><button id="refresh-android" class="button secondary" type="button" disabled>Buscar dispositivos</button></div>
         <div class="panel-body">
           <p id="android-status" class="muted">ARTEMIS é uma integração Android opcional. A ausência ou indisponibilidade dela não bloqueia o HUD; configure um host autorizado no backend para listar dispositivos.</p>
@@ -208,7 +290,7 @@
         </div>
       </section>
 
-      <section class="bottom">
+      <section class="bottom" id="logs-panel">
         <article class="panel">
           <div class="panel-head"><h2>Console de atividade</h2><button id="refresh-logs" class="button secondary" type="button" disabled>Atualizar</button></div>
           <div id="logs" class="logs" aria-live="polite"></div>
@@ -228,7 +310,7 @@
           <div id="leads" class="lead-list"><p class="muted">Autentique-se para carregar os dados autorizados.</p></div>
         </article>
       </section>
-      <section class="panel" style="margin-top:18px">
+      <section class="panel" id="sales-panel" style="margin-top:18px">
         <div class="panel-head"><h2>Análise comercial</h2><div><button id="analyze-offer" class="button secondary" type="button" disabled>Analisar oferta Neris</button> <button id="analyze-products" class="button secondary" type="button" disabled>Analisar catálogo Shopify</button></div></div>
         <div id="offer-analysis" class="panel-body muted">A análise usa somente os dados de plano e preço configurados; resultados comerciais reais ainda dependem de métricas verificadas.</div>
         <div id="product-analysis" class="panel-body muted">A análise Shopify consulta catálogo e vendas recentes sem dados de compradores. Configure permissões de leitura antes de usar.</div>
@@ -366,6 +448,8 @@
 
         function renderAgents(items) {
           agents = items;
+          window.nerisAgents = items;
+          window.dispatchEvent(new CustomEvent("neris:agents-updated", { detail: items }));
           office.replaceChildren();
           const selector = byId("agent-select");
           selector.replaceChildren();
@@ -387,7 +471,7 @@
             selector.append(option);
           }
           byId("count-total").textContent = String(items.length);
-          byId("count-running").textContent = String(items.filter((a) => a.status !== "offline").length);
+          byId("count-running").textContent = String(items.filter((a) => a.status === "running").length);
           byId("count-errors").textContent = String(items.filter((a) => a.status === "error").length);
           byId("office-note").textContent = `${items.length} workers FastAPI; tarefas executam quando atribuídas`;
         }
@@ -521,6 +605,8 @@
 
         async function refreshLogs() {
           const data = await request("/api/admin/logs?limit=100");
+          window.nerisLogs = data.logs;
+          window.dispatchEvent(new CustomEvent("neris:logs-updated", { detail: data.logs }));
           logs.replaceChildren();
           for (const item of data.logs) {
             const entry = document.createElement("div");
@@ -813,5 +899,6 @@
         setConnected(false, "Aguardando autenticação");
       })();
     </script>
+    <script type="module" src="/static/office.js"></script>
   </body>
 </html>

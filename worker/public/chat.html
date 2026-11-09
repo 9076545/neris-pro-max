@@ -114,6 +114,21 @@
   .pending button { background: none; border: 0; color: var(--muted); padding: 0 2px; }
   .row { display: flex; align-items: flex-end; gap: 6px; }
   textarea#input { flex: 1; resize: none; min-height: 42px; max-height: 180px; padding: 10px 8px; border: 0; background: transparent; outline: none; font-size: 15px; line-height: 1.45; }
+  .codesx-modes { max-width: 820px; margin: 10px auto 0; }
+  .codesx-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 0 2px 7px; color: #b7d8ff; font: 600 10px/1.3 ui-monospace, Consolas, monospace; letter-spacing: .16em; }
+  .codesx-heading small { color: var(--muted); font: 10px/1.4 Arial, sans-serif; letter-spacing: 0; }
+  .codesx-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .codesx-card { position: relative; display: grid; gap: 4px; min-height: 68px; overflow: hidden; padding: 10px 12px; border: 1px solid #254d77; border-radius: 9px; background: linear-gradient(125deg, #07182a, #080b12 72%); color: #eef6ff; text-align: left; box-shadow: inset 0 0 22px #1263a41c; transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease; }
+  .codesx-card::before { content: ""; position: absolute; top: 0; left: -55%; width: 42%; height: 1px; background: linear-gradient(90deg, transparent, #61b7ff, transparent); animation: codesx-scan 3.4s linear infinite; }
+  .codesx-card:hover, .codesx-card[aria-pressed="true"] { transform: translateY(-2px); border-color: #57aaff; box-shadow: 0 0 20px #1688ff29, inset 0 0 24px #1263a426; }
+  .codesx-card strong { color: #f4f8ff; font-size: 13px; }
+  .codesx-card span { color: #a9bfd6; font-size: 10px; line-height: 1.4; }
+  .codesx-card small { color: #70bdff; font: 9px ui-monospace, Consolas, monospace; letter-spacing: .08em; }
+  .codesx-mode-state { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 7px; padding: 7px 9px; border: 1px solid #28547e; border-radius: 8px; background: #071321; color: #b7d8ff; font-size: 10px; }
+  .codesx-mode-state[hidden] { display: none; }
+  .codesx-mode-state button { border: 0; background: transparent; color: #85c7ff; font-size: 10px; text-decoration: underline; }
+  @keyframes codesx-scan { 0% { transform: translateX(0); } 100% { transform: translateX(360%); } }
+  @media (prefers-reduced-motion: reduce) { .codesx-card::before { animation: none; } .codesx-card { transition: none; } }
   .rec { display: none; align-items: center; gap: 10px; padding: 6px 10px; font-size: 13px; color: var(--muted); }
   .rec.on { display: flex; }
   .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--danger); animation: blink 1s steps(2,start) infinite; }
@@ -154,6 +169,7 @@
   .auth-message.success { color: var(--ok) !important; }
   @media (max-width: 560px) {
     .entry-plans { grid-template-columns: 1fr; }
+    .codesx-grid { grid-template-columns: 1fr; }
     header.top { padding: 8px; }
     .top-left { gap: 6px; }
     .agent-select { max-width: 142px; }
@@ -285,6 +301,25 @@
           <button class="btn icon danger" id="stop" aria-label="Parar gravação ou resposta" hidden title="Parar">Parar</button>
           <button class="btn primary" id="send" aria-label="Enviar">Enviar</button>
         </div>
+        <section class="codesx-modes" aria-label="Modos CodesX">
+          <div class="codesx-heading"><span>MODOS · CODESX</span><small>Requer Neris Pro ou Neris Ultra Max</small></div>
+          <div class="codesx-grid">
+            <button class="codesx-card" type="button" data-code-mode="xperte-jogos" aria-pressed="false">
+              <small>GAME STUDIO · PRO / ULTRA</small>
+              <strong>Xperte Jogos</strong>
+              <span>Planeje e gere um projeto de jogo web com código revisável.</span>
+            </button>
+            <button class="codesx-card" type="button" data-code-mode="criador-saas" aria-pressed="false">
+              <small>SAAS STUDIO · PRO / ULTRA</small>
+              <strong>Criador SaaS com Assessoria</strong>
+              <span>Estruture um produto SaaS, painel ou sistema com orientação de arquitetura.</span>
+            </button>
+          </div>
+          <div id="codesx-mode-state" class="codesx-mode-state" hidden>
+            <span id="codesx-mode-label"></span>
+            <button id="codesx-mode-cancel" type="button">Cancelar modo</button>
+          </div>
+        </section>
       </div>
       <p class="hint">A Neris pode errar. Confira informações importantes. Ao escolher Gemini ou Claude, sua mensagem e parte do histórico são enviados ao provedor selecionado e podem gerar custos conforme a tarifa dele. Áudio é transcrito e a voz é gerada por serviços externos, com seu consentimento.</p>
     </footer>
@@ -306,27 +341,53 @@
       </article>
       <article class="entry-plan">
         <h3>Neris Pro</h3>
-        <p><strong>Até 300 mensagens por dia</strong></p>
-        <p>Limite mensal configurado: 10.000 mensagens. Preço e contratação não estão ativos no chat; consulte a equipe.</p>
-        <a class="btn" href="https://wa.me/5579981483630?text=Quero%20consultar%20o%20plano%20Neris%20Pro." target="_blank" rel="noopener noreferrer">Consultar disponibilidade</a>
+        <p><strong>R$ 29,90/mês · até 300 mensagens por dia</strong></p>
+        <p>Limite mensal configurado: 10.000 mensagens. Checkout Cakto em preparação; fale com a equipe para contratar.</p>
+        <a class="btn" href="https://wa.me/5579981483630?text=Quero%20contratar%20o%20plano%20Neris%20Pro%20por%20R%24%2029%2C90%20mensais." target="_blank" rel="noopener noreferrer">Contratar pelo WhatsApp</a>
       </article>
       <article class="entry-plan">
         <h3>Neris 5.6</h3>
-        <p><strong>Até 1.000 mensagens por dia</strong></p>
-        <p>Limite mensal configurado: 30.000 mensagens. Preço e contratação não estão ativos no chat; consulte a equipe.</p>
-        <a class="btn" href="https://wa.me/5579981483630?text=Quero%20consultar%20o%20plano%20Neris%205.6." target="_blank" rel="noopener noreferrer">Consultar disponibilidade</a>
+        <p><strong>R$ 59,90/mês · até 1.000 mensagens por dia</strong></p>
+        <p>Limite mensal configurado: 30.000 mensagens. Checkout Cakto em preparação; fale com a equipe para contratar.</p>
+        <a class="btn" href="https://wa.me/5579981483630?text=Quero%20contratar%20o%20plano%20Neris%205.6%20por%20R%24%2059%2C90%20mensais." target="_blank" rel="noopener noreferrer">Contratar pelo WhatsApp</a>
       </article>
       <article class="entry-plan">
         <h3>Neris Ultra Max</h3>
-        <p><strong>Até 3.333 mensagens por dia</strong></p>
-        <p>Limite mensal configurado: 100.000 mensagens. Preço e contratação não estão ativos no chat; consulte a equipe.</p>
-        <a class="btn" href="https://wa.me/5579981483630?text=Quero%20consultar%20o%20plano%20Neris%20Ultra%20Max." target="_blank" rel="noopener noreferrer">Consultar disponibilidade</a>
+        <p><strong>R$ 150,00/mês · até 3.333 mensagens por dia</strong></p>
+        <p>Limite mensal configurado: 100.000 mensagens. Checkout Cakto em preparação; fale com a equipe para contratar.</p>
+        <a class="btn" href="https://wa.me/5579981483630?text=Quero%20contratar%20o%20plano%20Neris%20Ultra%20Max%20por%20R%24%20150%2C00%20mensais." target="_blank" rel="noopener noreferrer">Contratar pelo WhatsApp</a>
       </article>
     </div>
     <p class="entry-note">A Neris usa dois modelos Cloudflare em sequência; Gemini e Claude são provedores externos e podem gerar custos conforme as tarifas deles. A disponibilidade depende das credenciais e cotas de cada provedor. O chat não gera imagens; anexar uma imagem não significa que ela será analisada. A geração de projetos cria arquivos de código quando o recurso do backend está disponível. Geração de vídeo depende de integração externa e não é criação de vídeo por código neste chat.</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
       <button class="btn" id="welcome-continue" type="button">Continuar como visitante</button>
       <button class="btn primary" id="welcome-login" type="button">Já tenho conta</button>
+    </div>
+  </section>
+</div>
+
+<div class="modal-back" id="mode-plans-back" hidden>
+  <section class="modal entry-modal" aria-labelledby="mode-plans-title">
+    <h2 id="mode-plans-title">Desbloqueie os modos CodesX</h2>
+    <p id="mode-plans-detail">Xperte Jogos e Criador SaaS exigem assinatura ativa Neris Pro ou Neris Ultra Max.</p>
+    <div class="entry-plans">
+      <article class="entry-plan">
+        <h3>Neris Pro</h3>
+        <p><strong>R$ 29,90/mês</strong></p>
+        <p>Inclui acesso aos modos CodesX quando o Estúdio estiver configurado.</p>
+        <a class="btn" href="https://wa.me/5579981483630?text=Quero%20informacoes%20sobre%20o%20Neris%20Pro%20e%20os%20modos%20CodesX." target="_blank" rel="noopener noreferrer">Falar no WhatsApp</a>
+      </article>
+      <article class="entry-plan">
+        <h3>Neris Ultra Max</h3>
+        <p><strong>R$ 150,00/mês</strong></p>
+        <p>Inclui acesso aos modos CodesX quando o Estúdio estiver configurado.</p>
+        <a class="btn" href="https://wa.me/5579981483630?text=Quero%20informacoes%20sobre%20o%20Neris%20Ultra%20Max%20e%20os%20modos%20CodesX." target="_blank" rel="noopener noreferrer">Falar no WhatsApp</a>
+      </article>
+    </div>
+    <p class="entry-note">O modo gera um pacote de código para revisão; não publica nem hospeda o produto automaticamente. Os links Cakto ainda precisam ser criados para cada plano.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+      <button class="btn" id="mode-plans-close" type="button">Fechar</button>
+      <button class="btn primary" id="mode-plans-signup" type="button">Criar conta gratuita</button>
     </div>
   </section>
 </div>
@@ -397,6 +458,7 @@
     history: [], pending: [], recorder: null, recStream: null, recChunks: [], recTimer: null, recStarted: 0,
     abort: null, busy: false, audio: null, audioUrl: null, voiceMode: false, voiceConsent: localStorage.getItem("neris.voiceConsent") === "1",
   };
+  let selectedCodeMode = null;
   const LIB_KEY = "neris.library";
   const THEME_KEY = "neris.theme";
 
@@ -811,6 +873,17 @@
   /* ------------------------------------------------ envio */
   async function sendMessage(text, opts = {}) {
     text = (text || "").trim();
+    if (selectedCodeMode) {
+      if (!text) { toast("Descreva o projeto que deseja criar."); return; }
+      if (S.pending.length) { toast("Remova os anexos antes de gerar um projeto CodesX."); return; }
+      if (S.busy) return;
+      if (!S.session) { showCodeModePlans(selectedCodeMode); return; }
+      const mode = selectedCodeMode;
+      setCodeMode(null);
+      $("input").value = "";
+      autoGrow();
+      return startProject(mode, text);
+    }
     if (!text && !S.pending.length) return;
     if (S.busy) return;
     if (!S.session) { toast("Entre na sua conta para conversar."); return openLogin(); }
@@ -922,16 +995,98 @@
   }
   $("export-chat").addEventListener("click", exportChat);
 
-  async function startProject() {
+  const CODE_MODE_DETAILS = {
+    "xperte-jogos": {
+      label: "Xperte Jogos",
+      kind: "game",
+      instruction: "CodesX Xperte Jogos: crie um jogo web funcional, com controles claros, regras, estados de vitória/derrota e instruções para executar e testar.",
+    },
+    "criador-saas": {
+      label: "Criador SaaS com Assessoria",
+      kind: "saas",
+      instruction: "CodesX Criador SaaS com Assessoria: estruture um produto SaaS funcional, com arquitetura coerente, interface, fluxos principais, validações e instruções para executar e testar.",
+    },
+  };
+
+  function showCodeModePlans(mode) {
+    const detail = CODE_MODE_DETAILS[mode];
+    if (detail) {
+      const plan = S.plan?.plan || "Visitante";
+      const reason = !S.session
+        ? "Entre ou crie uma conta para ver os planos e contratar."
+        : S.plan?.trial_active
+          ? "O período de experiência não inclui estes modos; é necessária uma assinatura paga ativa."
+          : `Seu plano atual é ${plan}. Estes modos exigem uma assinatura ativa Neris Pro ou Neris Ultra Max.`;
+      $("mode-plans-title").textContent = `Desbloqueie ${detail.label}`;
+      $("mode-plans-detail").textContent = reason;
+    }
+    $("mode-plans-signup").hidden = Boolean(S.session);
+    openModal("mode-plans-back");
+  }
+
+  function setCodeMode(mode) {
+    selectedCodeMode = mode;
+    document.querySelectorAll("[data-code-mode]").forEach((button) => {
+      button.setAttribute("aria-pressed", String(button.dataset.codeMode === mode));
+    });
+    const state = $("codesx-mode-state");
+    state.hidden = !mode;
+    if (mode) {
+      $("codesx-mode-label").textContent = `${CODE_MODE_DETAILS[mode].label} ativo · descreva sua ideia e envie`;
+      $("input").placeholder = `Descreva o projeto para ${CODE_MODE_DETAILS[mode].label}…`;
+      $("input").focus();
+    } else {
+      $("input").placeholder = "Pergunte alguma coisa à Neris…";
+    }
+  }
+
+  async function chooseCodeMode(mode) {
+    if (!CODE_MODE_DETAILS[mode]) return;
+    if (!S.session) { showCodeModePlans(mode); return; }
+    try {
+      await loadAccount();
+    } catch (error) {
+      toast(error.message, true);
+      return;
+    }
+    const planAllowsMode = ["Neris Pro", "Neris Ultra Max"].includes(S.plan.plan)
+      && S.plan.subscription_status === "ativo"
+      && !S.plan.trial_active;
+    if (!planAllowsMode) { showCodeModePlans(mode); return; }
+    if (!S.plan.project_enabled || !S.config?.backend_enabled) {
+      toast("O Estúdio de projetos ainda não está habilitado. Tente novamente mais tarde.", true);
+      return;
+    }
+    setCodeMode(mode);
+  }
+
+  document.querySelectorAll("[data-code-mode]").forEach((button) => {
+    button.addEventListener("click", () => chooseCodeMode(button.dataset.codeMode));
+  });
+  $("codesx-mode-cancel").addEventListener("click", () => setCodeMode(null));
+  $("mode-plans-close").addEventListener("click", () => { $("mode-plans-back").hidden = true; });
+  $("mode-plans-signup").addEventListener("click", () => {
+    $("mode-plans-back").hidden = true;
+    showAuth("signup");
+  });
+
+  async function startProject(mode = null, suppliedBrief = "") {
     if (!S.session) { toast("Entre na sua conta para gerar projetos."); return openLogin(); }
     if (!S.config?.backend_enabled) { toast("O Estúdio de projetos ainda não está habilitado nesta edição.", true); return; }
-    const brief = prompt("Descreva o projeto (site, SaaS ou jogo web):");
+    if (S.busy) return;
+    const brief = (suppliedBrief || prompt("Descreva o projeto (site, SaaS ou jogo web):") || "").trim();
     if (!brief || !brief.trim()) return;
-    const kind = /jogo/i.test(brief) ? "game" : /saas|painel|sistema/i.test(brief) ? "saas" : "website";
+    const modeDetails = mode ? CODE_MODE_DETAILS[mode] : null;
+    const kind = modeDetails?.kind || (/jogo/i.test(brief) ? "game" : /saas|painel|sistema/i.test(brief) ? "saas" : "website");
+    const projectBrief = (modeDetails ? `${modeDetails.instruction}\n\nBrief do cliente:\n${brief}` : brief).slice(0, 4000);
     const name = brief.slice(0, 40);
-    const card = addCard({ icon: "•", title: `Gerando: ${name}`, sub: "A Neris está criando e revisando os arquivos…" });
+    const card = addCard({ icon: "•", title: `Gerando${modeDetails ? ` · ${modeDetails.label}` : ""}: ${name}`, sub: "A Neris está criando e revisando os arquivos…" });
+    S.busy = true;
+    $("send").disabled = true;
     try {
-      const r = await api("/api/projects/generate", { method: "POST", json: { name, kind, brief, image_consent: false } });
+      const request = { name, kind, brief: projectBrief, image_consent: false };
+      if (mode) request.mode = mode;
+      const r = await api("/api/projects/generate", { method: "POST", json: request });
       if (!r.ok) { const d = await r.json().catch(() => ({})); throw new Error(d.detail || "Não foi possível gerar o projeto."); }
       const blob = await r.blob();
       const url = URL.createObjectURL(blob);
@@ -940,6 +1095,9 @@
       libAdd({ kind: "projeto", title: fname, sub: name, href: url, filename: fname });
     } catch (err) {
       card.error(err.message);
+    } finally {
+      S.busy = false;
+      $("send").disabled = false;
     }
   }
 

@@ -514,6 +514,7 @@ class SupabaseRepository:
                     "id": user["id"],
                     "plano": user.get("plano", "Neris 3.5"),
                     "status_assinatura": user.get("status_assinatura", "ativo"),
+                    "trial_active": False,
                 }
 
         url = os.getenv("SUPABASE_URL", "")
@@ -535,14 +536,29 @@ class SupabaseRepository:
             user_client.postgrest.auth(access_token)
             response = (
                 user_client.table("usuarios_saas")
-                .select("id,plano,status_assinatura")
+                .select("id,plano,status_assinatura,neris_trial_ends_at")
                 .eq("id", user_id)
                 .limit(1)
                 .execute()
             )
             if not response.data:
                 raise PermissionError("The authenticated SaaS profile was not found.")
-            return response.data[0]
+            profile = response.data[0]
+            trial_active = False
+            trial_ends_at = profile.get("neris_trial_ends_at")
+            if (
+                profile.get("plano") == "Neris 3.5"
+                and profile.get("status_assinatura") == "ativo"
+                and isinstance(trial_ends_at, str)
+            ):
+                try:
+                    trial_end = datetime.fromisoformat(trial_ends_at.replace("Z", "+00:00"))
+                    if trial_end.tzinfo is None:
+                        trial_end = trial_end.replace(tzinfo=timezone.utc)
+                    trial_active = trial_end > datetime.now(timezone.utc)
+                except ValueError:
+                    trial_active = False
+            return {**profile, "trial_active": trial_active}
 
         return await asyncio.to_thread(read_profile)
 

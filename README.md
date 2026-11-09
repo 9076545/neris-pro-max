@@ -66,12 +66,12 @@ Deepgram só é necessário para iniciar essa pipeline Pipecat separadamente.
 
 ## Planos e limites
 
-| Plano | Preço sugerido/mês | Mensagens/dia | Mensagens/mês |
+| Plano | Preço/mês | Mensagens/dia | Mensagens/mês |
 |---|---:|---:|---:|
 | Neris 3.5 | R$ 0,00 | 50 | 1.000 |
 | Neris Pro | R$ 29,90 | 300 | 10.000 |
 | Neris 5.6 | R$ 59,90 | 1.000 | 30.000 |
-| Neris Ultra Max | R$ 99,90 | 3.333 | 100.000 |
+| Neris Ultra Max | R$ 150,00 | 3.333 | 100.000 |
 
 Os limites são aplicados por RPC transacional no Supabase. O Ultra Max tem
 limite mensal de uso justo e não é ilimitado. Voz está disponível a partir do
@@ -80,10 +80,18 @@ Max. Os planos usam atualmente o mesmo modelo Workers AI configurado; diferem
 em limites, permissões e extensão de resposta, não em uma inteligência
 comprovadamente superior.
 
-Os valores no site são sugestões informativas. Checkout, pagamentos, webhooks
-da Cakto e cupons não estão implementados nem ativos. O sistema não aumenta
-preços nem promete descontos automáticos. Qualquer oferta futura deve informar
-valor, prazo e condições e depender da escolha do cliente.
+Os preços mensais aprovados para exibição são R$ 29,90, R$ 59,90 e R$ 150,00.
+O checkout e o webhook Neris da Cakto ainda não estão configurados; enquanto
+isso, os cartões levam ao atendimento da Central JA no WhatsApp. Para ativar a
+cobrança, cada plano precisa de um checkout/produto Cakto próprio e o webhook
+precisa confirmar o pagamento antes de alterar o plano da conta.
+
+Os modos CodesX **Xperte Jogos** e **Criador SaaS com Assessoria** exigem uma
+assinatura paga ativa Neris Pro ou Neris Ultra Max; não estão disponíveis no
+plano Neris 5.6 nem durante o período de experiência. A interface e a API do
+FastAPI validam essa regra. A geração entrega um arquivo ZIP para revisão, sem
+publicar ou hospedar o projeto automaticamente. A criação genérica de projetos
+para os planos que já a permitem continua inalterada.
 
 ## Cloudflare: implantação e configuração
 
