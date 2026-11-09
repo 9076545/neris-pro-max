@@ -70,6 +70,10 @@
   .side-foot { margin-top: auto; padding: 12px; display: flex; gap: 8px; align-items: center; justify-content: space-between; }
   .avatar-wrap { position: relative; width: 52px; height: 52px; border-radius: 50%; overflow: hidden; background: var(--panel-2); border: 2px solid var(--line); flex: 0 0 auto; }
   .avatar-wrap canvas { width: 100% !important; height: 100% !important; display: block; }
+  .neris-cloud-stage { width: min(230px, 52vw); height: min(230px, 52vw); margin: 0 auto 12px; border: 1px solid var(--line); border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--accent) 10%, transparent), transparent 68%); overflow: hidden; }
+  .neris-cloud-stage canvas { width: 100% !important; height: 100% !important; display: block; }
+  .photo-consent { display: flex; align-items: flex-start; gap: 7px; width: 100%; padding: 4px 6px; color: var(--muted); font-size: 11px; }
+  .photo-consent input { margin-top: 2px; }
   .me { display: flex; align-items: center; gap: 10px; min-width: 0; }
   .me small { color: var(--muted); font-size: 11px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; }
 
@@ -88,7 +92,7 @@
   .msg.user { margin-left: auto; background: var(--bubble-user); border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
   .msg .meta { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
   .msg .meta .btn { min-height: 26px; font-size: 11px; padding: 0 9px; }
-  .empty { margin: 12vh auto 0; max-width: 560px; text-align: center; color: var(--muted); }
+  .empty { margin: 5vh auto 0; max-width: 560px; text-align: center; color: var(--muted); }
   .empty h1 { color: var(--text); font-size: clamp(26px, 4vw, 38px); letter-spacing: -.03em; margin: 10px 0; }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 18px; }
   .chip { padding: 8px 12px; border-radius: 4px; border: 1px solid var(--line); background: var(--panel); font-size: 12.5px; color: var(--text); }
@@ -264,6 +268,7 @@
     <section id="chat" aria-live="polite">
       <div class="thread" id="thread">
         <div class="empty" id="empty">
+          <div class="neris-cloud-stage" id="avatar-stage" aria-hidden="true"></div>
           <div class="eyebrow" style="font-size:11px;letter-spacing:.2em;color:var(--accent)">NERIS</div>
           <h1>Como posso ajudar hoje?</h1>
           <p>Escreva, fale ou anexe um arquivo. Os especialistas respondem em português.</p>
@@ -296,8 +301,9 @@
           </div>
           <input type="file" id="file-in" multiple hidden accept=".txt,.md,.csv,.json,.html,.css,.js,image/jpeg,image/png,image/webp">
           <input type="file" id="cam-in" accept="image/jpeg,image/png,image/webp" capture="environment" hidden>
+          <button class="btn icon" id="camera-btn" type="button" aria-label="Tirar foto do ambiente" title="Tirar foto do ambiente">📷</button>
           <textarea id="input" rows="1" maxlength="4000" placeholder="Pergunte alguma coisa à Neris…" aria-label="Mensagem"></textarea>
-          <button class="btn icon" id="mic" aria-label="Falar com a Neris (gravar áudio)" title="Falar">Voz</button>
+          <button class="btn icon" id="mic" aria-label="Falar com a Neris (gravar áudio)" title="Falar com a Neris">Falar</button>
           <button class="btn icon danger" id="stop" aria-label="Parar gravação ou resposta" hidden title="Parar">Parar</button>
           <button class="btn primary" id="send" aria-label="Enviar">Enviar</button>
         </div>
@@ -321,7 +327,6 @@
           </div>
         </section>
       </div>
-      <p class="hint">A Neris pode errar. Confira informações importantes. Ao escolher Gemini ou Claude, sua mensagem e parte do histórico são enviados ao provedor selecionado e podem gerar custos conforme a tarifa dele. Áudio é transcrito e a voz é gerada por serviços externos, com seu consentimento.</p>
     </footer>
   </main>
 </div>
@@ -884,6 +889,18 @@
       autoGrow();
       return startProject(mode, text);
     }
+    const photos = S.pending.filter((item) => item.image);
+    if (photos.length) {
+      if (S.pending.length !== 1 || photos.length !== 1) {
+        toast("Envie uma foto por vez para planejar o ambiente.", true);
+        return;
+      }
+      if (!text) {
+        toast("Descreva o que deseja mudar no ambiente antes de enviar a foto.", true);
+        return;
+      }
+      return analyzeRoomPhoto(text, photos[0]);
+    }
     if (!text && !S.pending.length) return;
     if (S.busy) return;
     if (!S.session) { toast("Entre na sua conta para conversar."); return openLogin(); }
@@ -944,11 +961,30 @@
       x.addEventListener("click", () => { S.pending.splice(i, 1); renderPending(); });
       c.append(x); box.append(c);
     });
+    if (S.pending.some((item) => item.image)) {
+      const label = document.createElement("label");
+      label.className = "photo-consent";
+      const checkbox = document.createElement("input");
+      checkbox.id = "photo-consent";
+      checkbox.type = "checkbox";
+      const text = document.createElement("span");
+      text.textContent = "Autorizo enviar esta foto ao serviço de análise visual para receber sugestões de layout. A foto não será usada para medir o ambiente.";
+      label.append(checkbox, text);
+      box.append(label);
+    }
   }
   async function addFiles(files) {
     for (const f of Array.from(files)) {
       if (f.size > 12 * 1024 * 1024) { toast(`${f.name} passa de 12 MB.`, true); continue; }
-      if (f.type.startsWith("image/")) { S.pending.push({ name: f.name, image: true }); continue; }
+      if (f.type.startsWith("image/")) {
+        if (!["image/jpeg", "image/png", "image/webp"].includes(f.type)) {
+          toast(`${f.name}: use uma imagem JPEG, PNG ou WebP.`, true);
+          continue;
+        }
+        S.pending = S.pending.filter((item) => !item.image);
+        S.pending.push({ name: f.name, image: true, file: f });
+        continue;
+      }
       if (/\.(txt|md|csv|json|html|css|js)$/i.test(f.name) && f.size <= 200 * 1024) {
         S.pending.push({ name: f.name, text: (await f.text()).slice(0, 20000) });
       } else {
@@ -958,6 +994,94 @@
     }
     renderPending();
   }
+  async function compressPhoto(file) {
+    const imageUrl = URL.createObjectURL(file);
+    try {
+      const image = new Image();
+      await new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = () => reject(new Error("Não foi possível abrir esta foto."));
+        image.src = imageUrl;
+      });
+      for (const maxDimension of [1440, 1120, 840]) {
+        const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("O navegador não pode preparar esta foto.");
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        for (const quality of [0.82, 0.68, 0.54]) {
+          const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", quality));
+          if (!blob) throw new Error("Não foi possível preparar esta foto para análise.");
+          if (blob.size > 950_000) continue;
+          const bytes = new Uint8Array(await blob.arrayBuffer());
+          let binary = "";
+          for (let offset = 0; offset < bytes.length; offset += 0x8000) {
+            binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
+          }
+          return { image_base64: btoa(binary), image_mime_type: "image/jpeg" };
+        }
+      }
+      throw new Error("Esta foto não pôde ser reduzida ao tamanho permitido.");
+    } finally {
+      URL.revokeObjectURL(imageUrl);
+    }
+  }
+  async function analyzeRoomPhoto(designRequest, photo) {
+    if (!S.session) { toast("Entre na sua conta para analisar uma foto."); return openLogin(); }
+    if (S.busy) return;
+    if (!$("photo-consent")?.checked) {
+      toast("Confirme o envio da foto antes de continuar.", true);
+      return;
+    }
+    if (designRequest.length > 1000) {
+      toast("Descreva o pedido em até 1.000 caracteres.", true);
+      return;
+    }
+    try {
+      await loadAccount();
+    } catch (error) {
+      toast(error.message, true);
+      return;
+    }
+    if (!["Neris Pro", "Neris Ultra Max"].includes(S.plan?.plan)
+      || S.plan?.subscription_status !== "ativo"
+      || S.plan?.trial_active) {
+      showCodeModePlans("interiores");
+      return;
+    }
+
+    S.busy = true;
+    $("send").disabled = true;
+    setStatus("Analisando a foto do ambiente…");
+    const pending = addMsg("assistant", "Preparando a foto para análise visual…");
+    try {
+      const image = await compressPhoto(photo.file);
+      const response = await api("/api/vision/room-plan", {
+        method: "POST",
+        json: { ...image, design_request: designRequest, image_consent: true },
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || data.error || "Não foi possível analisar a foto.");
+      pending.remove();
+      addMsg("user", `📷 ${designRequest}`);
+      addMsg("assistant", `${data.analysis}\n\n${data.notice}`);
+      $("input").value = "";
+      autoGrow();
+      S.pending = [];
+      renderPending();
+      setStatus("Sugestão de ambiente pronta");
+    } catch (error) {
+      pending.remove();
+      toast(error.message, true);
+      setStatus("Falha na análise visual");
+    } finally {
+      S.busy = false;
+      $("send").disabled = false;
+    }
+  }
+  $("camera-btn").addEventListener("click", () => $("cam-in").click());
   $("file-in").addEventListener("change", (e) => { addFiles(e.target.files); e.target.value = ""; });
   $("cam-in").addEventListener("change", (e) => { addFiles(e.target.files); e.target.value = ""; });
 
@@ -996,6 +1120,7 @@
   $("export-chat").addEventListener("click", exportChat);
 
   const CODE_MODE_DETAILS = {
+    interiores: { label: "Planejamento de interiores" },
     "xperte-jogos": {
       label: "Xperte Jogos",
       kind: "game",
@@ -1017,7 +1142,9 @@
         : S.plan?.trial_active
           ? "O período de experiência não inclui estes modos; é necessária uma assinatura paga ativa."
           : `Seu plano atual é ${plan}. Estes modos exigem uma assinatura ativa Neris Pro ou Neris Ultra Max.`;
-      $("mode-plans-title").textContent = `Desbloqueie ${detail.label}`;
+      $("mode-plans-title").textContent = mode === "interiores"
+        ? "Planejamento visual de ambientes"
+        : `Desbloqueie ${detail.label}`;
       $("mode-plans-detail").textContent = reason;
     }
     $("mode-plans-signup").hidden = Boolean(S.session);
@@ -1491,21 +1618,14 @@
 <script type="module">
 /* ------------------------------------------------ avatar 3D: leve, reage a voz e rolagem */
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-const mounts = [document.getElementById("avatar-mini")];
-let renderer = null, scene, camera, core, ring, points, level = 0, targetLevel = 0, scrollBoost = 0, THREE = null;
+const mounts = [document.getElementById("avatar-mini"), document.getElementById("avatar-stage")].filter(Boolean);
+const renderers = [];
+let scene, core, ring, points, level = 0, targetLevel = 0, scrollBoost = 0, THREE = null;
 let themeColor = 0xd4ff3a;
 
 function setupThree(mod) {
   THREE = mod;
-  const host = mounts[0];
-  const w = host.clientWidth || 52, h = host.clientHeight || 52;
   scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(40, w / h, 0.1, 50);
-  camera.position.z = 3.2;
-  renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false, powerPreference: "low-power" });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
-  renderer.setSize(w, h, false);
-  host.append(renderer.domElement);
   core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.9, 1), new THREE.MeshBasicMaterial({ color: themeColor, wireframe: true, transparent: true, opacity: 0.85 }));
   scene.add(core);
   ring = new THREE.Mesh(new THREE.TorusGeometry(1.25, 0.012, 6, 80), new THREE.MeshBasicMaterial({ color: 0xff4b2b, transparent: true, opacity: 0.6 }));
@@ -1519,18 +1639,30 @@ function setupThree(mod) {
   const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
   points = new THREE.Points(g, new THREE.PointsMaterial({ size: 0.04, color: 0xf3efe4, transparent: true, opacity: 0.8 }));
   scene.add(points);
-  const sizeObs = new ResizeObserver(() => {
-    const W = host.clientWidth || 52, H = host.clientHeight || 52;
-    renderer.setSize(W, H, false); camera.aspect = W / H; camera.updateProjectionMatrix();
+  mounts.forEach((host) => {
+    const w = host.clientWidth || 52, h = host.clientHeight || 52;
+    const camera = new THREE.PerspectiveCamera(40, w / h, 0.1, 50);
+    camera.position.z = host.id === "avatar-stage" ? 3.8 : 3.2;
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false, powerPreference: "low-power" });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+    renderer.setSize(w, h, false);
+    host.append(renderer.domElement);
+    renderers.push({ renderer, camera, host });
+    const sizeObs = new ResizeObserver(() => {
+      const width = host.clientWidth || 52, height = host.clientHeight || 52;
+      renderer.setSize(width, height, false);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+    });
+    sizeObs.observe(host);
   });
-  sizeObs.observe(host);
   document.addEventListener("visibilitychange", () => { paused = document.hidden; if (!paused) loop(); });
   loop();
 }
 
 let paused = false, last = 0;
 function loop(now = 0) {
-  if (paused || !renderer) return;
+  if (paused || !renderers.length) return;
   requestAnimationFrame(loop);
   // limita a ~30 fps para economizar bateria
   if (now - last < 33) return;
@@ -1543,7 +1675,7 @@ function loop(now = 0) {
   ring.rotation.z += reduce ? 0 : 0.003;
   points.rotation.y -= reduce ? 0 : 0.002;
   scrollBoost *= 0.92;
-  renderer.render(scene, camera);
+  renderers.forEach(({ renderer, camera }) => renderer.render(scene, camera));
 }
 
 window.nerisAvatar = {
@@ -1554,7 +1686,12 @@ addEventListener("wheel", (e) => { scrollBoost = Math.min(4, scrollBoost + Math.
 document.getElementById("chat").addEventListener("scroll", () => { scrollBoost = Math.min(4, scrollBoost + 0.2); }, { passive: true });
 
 // carrega o three.js só depois que o carregamento aparece, para não atrasar a primeira tela
-const start = () => import("https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js").then(setupThree).catch(() => {});
+const start = () => import("https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js")
+  .then(setupThree)
+  .catch((error) => {
+    console.error("Neris 3D presence initialization failed:", error);
+    setStatus("Presença 3D indisponível; o chat continua funcionando.");
+  });
 if ("requestIdleCallback" in window) requestIdleCallback(start, { timeout: 2000 }); else setTimeout(start, 800);
 </script>
 </body>

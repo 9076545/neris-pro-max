@@ -189,6 +189,9 @@ function backendPath(pathname) {
   if (pathname === "/api/projects/generate") {
     return "/api/public/projects/generate";
   }
+  if (pathname === "/api/vision/room-plan") {
+    return "/api/public/vision/room-plan";
+  }
   if (pathname === "/api/leads/capture") {
     return "/api/public/leads/capture";
   }

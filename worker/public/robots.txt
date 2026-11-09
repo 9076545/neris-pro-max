@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://neris.nexuscentralja.com.br/sitemap.xml

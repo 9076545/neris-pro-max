@@ -211,6 +211,7 @@ test("backend-dependent APIs report unavailable until the Python service is conf
   };
   const paths = [
     ["/api/projects/generate", "POST"],
+    ["/api/vision/room-plan", "POST"],
     ["/api/leads/capture", "POST"],
     ["/api/customer/records", "GET"],
     ["/crm", "GET"],
@@ -272,6 +273,44 @@ test("project generation is proxied to the authenticated Python endpoint", async
     assert.equal(new URL(upstreamRequest.url).pathname, "/api/public/projects/generate");
     assert.equal(upstreamRequest.headers.get("authorization"), "Bearer user-access-token");
     assert.equal(upstreamRequest.headers.has("cookie"), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("room planning is proxied to the authenticated Python endpoint", async () => {
+  const originalFetch = globalThis.fetch;
+  let upstreamRequest;
+  globalThis.fetch = async (request) => {
+    upstreamRequest = request;
+    return new Response(JSON.stringify({ analysis: "Sugestão de layout." }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  };
+  try {
+    const response = await worker.fetch(
+      new Request("https://chat.neris.nexuscentralja.com.br/api/vision/room-plan", {
+        method: "POST",
+        headers: {
+          origin: "https://chat.neris.nexuscentralja.com.br",
+          authorization: "Bearer user-token",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ design_request: "Planeje a sala." }),
+      }),
+      {
+        PUBLIC_ORIGINS: "https://chat.neris.nexuscentralja.com.br",
+        PUBLIC_ORIGIN: "https://chat.neris.nexuscentralja.com.br",
+        NERIS_API_BASE_URL: "https://api.neris.nexuscentralja.com.br",
+      },
+    );
+    assert.equal(response.status, 200);
+    assert.equal(
+      new URL(upstreamRequest.url).pathname,
+      "/api/public/vision/room-plan",
+    );
+    assert.equal(upstreamRequest.headers.get("authorization"), "Bearer user-token");
   } finally {
     globalThis.fetch = originalFetch;
   }

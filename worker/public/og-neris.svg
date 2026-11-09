@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">Neris Pro Max</title>
+  <desc id="description">Chat de IA em português com 44 perfis especialistas, pela Central JA.</desc>
+  <defs>
+    <radialGradient id="glow" cx="82%" cy="20%" r="80%">
+      <stop offset="0" stop-color="#ff6a00" stop-opacity=".35"/>
+      <stop offset="1" stop-color="#0e0e0e" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="accent" x1="0" x2="1">
+      <stop offset="0" stop-color="#ffc400"/>
+      <stop offset=".58" stop-color="#ff6a00"/>
+      <stop offset="1" stop-color="#ff2a1f"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#0e0e0e"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <circle cx="930" cy="315" r="172" fill="none" stroke="#ff6a00" stroke-opacity=".55" stroke-width="2"/>
+  <circle cx="930" cy="315" r="132" fill="none" stroke="#f3efe4" stroke-opacity=".7" stroke-width="1"/>
+  <path d="M845 365 930 165l85 200M875 295h110" fill="none" stroke="url(#accent)" stroke-linecap="round" stroke-linejoin="round" stroke-width="15"/>
+  <text x="88" y="215" fill="#f3efe4" font-family="Segoe UI,Arial,sans-serif" font-size="24" letter-spacing="8">CENTRAL JA</text>
+  <text x="80" y="325" fill="#f3efe4" font-family="Segoe UI,Arial,sans-serif" font-size="82" font-weight="700">NERIS</text>
+  <text x="84" y="389" fill="#ff6a00" font-family="Segoe UI,Arial,sans-serif" font-size="42" font-weight="600">PRO MAX</text>
+  <text x="86" y="465" fill="#c7c7c7" font-family="Segoe UI,Arial,sans-serif" font-size="26">IA em português · 44 perfis especialistas · texto e voz</text>
+</svg>

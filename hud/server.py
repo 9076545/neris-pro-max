@@ -31,7 +31,7 @@ from agents.base import AgentRuntime
 from agents.additional_agents import PENDING_INTEGRATION_AGENT_IDS
 from core.brain import CloudflareWorkersAI, NerisBrain
 from core.command_router import CommandRouter
-from core.project_studio import ProjectStudio
+from core.project_studio import ProjectStudio, decode_visual_reference
 from core.storage import mock_mode, repository
 from connectors.artemis_android import ArtemisAndroidConnector
 from connectors.meta_whatsapp import MetaWhatsAppClient
@@ -160,6 +160,7 @@ async def lifespan(app: FastAPI):
     app.state.agent_runtime = runtime
     app.state.command_router = CommandRouter(brain, runtime)
     app.state.project_studio = ProjectStudio(runtime, brain.ai)
+    app.state.vision_ai = brain.ai
     try:
         await runtime.start()
         yield
@@ -205,6 +206,13 @@ class ProjectBuildRequest(BaseModel):
     image_base64: str | None = Field(default=None, max_length=1_400_000)
     image_mime_type: str | None = None
     image_consent: bool = False
+
+
+class RoomPlanRequest(BaseModel):
+    image_base64: str = Field(min_length=1, max_length=1_400_000)
+    image_mime_type: Literal["image/jpeg", "image/png", "image/webp"]
+    design_request: str = Field(min_length=1, max_length=1000)
+    image_consent: bool
 
 
 class PublicLeadRequest(BaseModel):
@@ -1060,6 +1068,51 @@ async def generate_customer_project(
             "X-Neris-Project-Files": str(project.file_count),
         },
     )
+
+
+@app.post("/api/public/vision/room-plan")
+async def generate_customer_room_plan(
+    body: RoomPlanRequest,
+    user: dict[str, object] = Depends(authenticated_project_user),
+) -> dict[str, str]:
+    if not body.image_consent:
+        raise HTTPException(status_code=422, detail="Confirme o envio da foto para analise visual.")
+    if user.get("status_assinatura", "ativo") != "ativo":
+        raise HTTPException(status_code=403, detail="A assinatura precisa estar ativa.")
+    if (
+        user.get("trial_active") is True
+        or user.get("plano") not in {"Neris Pro", "Neris Ultra Max"}
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="O planejamento visual de ambientes requer assinatura ativa Neris Pro ou Neris Ultra Max.",
+        )
+    try:
+        image = decode_visual_reference(body.image_base64, body.image_mime_type)
+        analysis = await app.state.vision_ai.plan_room_from_reference(
+            image,
+            mime_type=body.image_mime_type,
+            design_request=body.design_request,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except (RuntimeError, httpx.HTTPError) as exc:
+        logger.error(
+            "Customer room analysis failed: plan=%s error_type=%s",
+            user.get("plano"),
+            type(exc).__name__,
+        )
+        raise HTTPException(
+            status_code=502,
+            detail="A analise visual nao esta disponivel no momento. Tente novamente mais tarde.",
+        ) from exc
+    return {
+        "analysis": analysis,
+        "notice": (
+            "Sugestao conceitual baseada na foto; nao mede o ambiente nem altera "
+            "a imagem original."
+        ),
+    }
 
 
 @app.post("/api/admin/agents/{agent_id}/tasks", dependencies=[Depends(require_admin)])
