@@ -101,6 +101,46 @@ class SupabaseRepository:
         )
         return response.data
 
+    async def neris_admin_usage_metrics(self) -> dict[str, Any] | None:
+        if mock_mode():
+            return None
+
+        response = await asyncio.to_thread(
+            lambda: self._service_client()
+            .rpc("get_neris_admin_usage_metrics")
+            .execute()
+        )
+        metrics = response.data
+        if not isinstance(metrics, dict):
+            raise RuntimeError("Supabase returned invalid Neris usage metrics.")
+
+        active_users = metrics.get("active_users_7d")
+        feedback = metrics.get("evolution_feedback")
+        if (
+            not isinstance(active_users, int)
+            or isinstance(active_users, bool)
+            or active_users < 0
+            or not isinstance(feedback, dict)
+        ):
+            raise RuntimeError("Supabase returned invalid Neris usage metrics.")
+
+        feedback_counts = {}
+        for answer in ("yes", "not_sure", "no", "responses"):
+            count = feedback.get(answer)
+            if not isinstance(count, int) or isinstance(count, bool) or count < 0:
+                raise RuntimeError("Supabase returned invalid Neris feedback metrics.")
+            feedback_counts[answer] = count
+        response_total = sum(
+            feedback_counts[answer] for answer in ("yes", "not_sure", "no")
+        )
+        if response_total != feedback_counts["responses"]:
+            raise RuntimeError("Supabase returned inconsistent Neris feedback metrics.")
+
+        return {
+            "active_users_7d": active_users,
+            "evolution_feedback": feedback_counts,
+        }
+
     async def add_lead(self, lead: dict[str, Any]) -> dict[str, Any]:
         required_fields = ("empresa_nome",)
         if any(not lead.get(field, "").strip() for field in required_fields):

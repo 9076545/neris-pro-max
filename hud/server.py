@@ -20,6 +20,7 @@ from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, PlainTextResponse, StreamingResponse
 import httpx
+from postgrest.exceptions import APIError as PostgrestAPIError
 from pydantic import BaseModel, Field
 from starlette.middleware.cors import CORSMiddleware
 from starlette.websockets import WebSocketState
@@ -626,6 +627,15 @@ async def admin_metrics() -> dict[str, object]:
     if mock_mode():
         leads = {"value": None, "status": "demo_mode", "source": "Neris mock mode"}
         orders = {"value": None, "status": "demo_mode", "source": "Neris mock mode"}
+        chat_users = {"value": None, "status": "demo_mode", "source": "Neris mock mode"}
+        evolution_feedback: dict[str, object] = {
+            "status": "demo_mode",
+            "yes": None,
+            "not_sure": None,
+            "no": None,
+            "responses": None,
+            "source": "Neris mock mode",
+        }
     else:
         try:
             recent_leads = await repository.recent_leads(500)
@@ -651,12 +661,43 @@ async def admin_metrics() -> dict[str, object]:
                 "status": "unavailable",
                 "source": "Shopify não configurado ou indisponível",
             }
+        try:
+            usage = await repository.neris_admin_usage_metrics()
+            if usage is None:
+                raise RuntimeError("Neris usage metrics are unavailable outside mock mode.")
+            chat_users = {
+                "value": usage["active_users_7d"],
+                "status": "connected",
+                "source": "Supabase Neris · contas únicas com conversa concluída nos últimos 7 dias",
+            }
+            evolution_feedback = {
+                "status": "connected",
+                **usage["evolution_feedback"],
+                "source": "Supabase Neris · respostas voluntárias e agregadas",
+            }
+        except (RuntimeError, httpx.HTTPError, PostgrestAPIError, ValueError) as exc:
+            logger.error("Neris usage metrics unavailable: error_type=%s", type(exc).__name__)
+            chat_users = {
+                "value": None,
+                "status": "unavailable",
+                "source": "Supabase Neris · aplique a migration de métricas e feedback",
+            }
+            evolution_feedback = {
+                "status": "unavailable",
+                "yes": None,
+                "not_sure": None,
+                "no": None,
+                "responses": None,
+                "source": "Supabase Neris · aplique a migration de métricas e feedback",
+            }
     return {
         "leads": leads,
         "orders": orders,
         "customers": unavailable,
         "spend": unavailable,
         "visits": unavailable,
+        "chat_users_7d": chat_users,
+        "evolution_feedback": evolution_feedback,
     }
 
 

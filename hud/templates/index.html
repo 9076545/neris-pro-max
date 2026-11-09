@@ -179,14 +179,19 @@
           <div class="metric"><strong id="metric-customers">Não conectado</strong><span>Clientes · fonte não conectada</span></div>
           <div class="metric"><strong id="metric-spend">Não conectado</strong><span>Gastos · sem fonte de faturamento</span></div>
           <div class="metric"><strong id="metric-visits">Não conectado</strong><span>Acessos · sem telemetria de visitas</span></div>
+          <div class="metric"><strong id="metric-chat-users">—</strong><span>Contas com conversa concluída · últimos 7 dias</span></div>
+          <div class="metric"><strong id="metric-feedback-total">—</strong><span>Respostas voluntárias à pesquisa</span></div>
+          <div class="metric"><strong id="metric-feedback-yes">—</strong><span>Pesquisa · Sim</span></div>
+          <div class="metric"><strong id="metric-feedback-unsure">—</strong><span>Pesquisa · Ainda não sei</span></div>
+          <div class="metric"><strong id="metric-feedback-no">—</strong><span>Pesquisa · Não</span></div>
         </div>
-        <div id="metrics-note" class="legend">Contagens indisponíveis até autenticar e consultar as fontes reais.</div>
+        <div id="metrics-note" class="legend">Contas ativas são usuários autenticados com conversa concluída, não visitas. A pesquisa é opcional e não armazena texto da conversa.</div>
       </section>
 
       <section class="panel" style="margin-top:18px">
         <div class="panel-head"><h2>ARTEMIS · Android</h2><button id="refresh-android" class="button secondary" type="button" disabled>Buscar dispositivos</button></div>
         <div class="panel-body">
-          <p id="android-status" class="muted">Conecte e configure um host ARTEMIS no backend para listar dispositivos.</p>
+          <p id="android-status" class="muted">ARTEMIS é uma integração Android opcional. A ausência ou indisponibilidade dela não bloqueia o HUD; configure um host autorizado no backend para listar dispositivos.</p>
           <form id="android-form">
             <div class="task-form">
               <select id="android-device" aria-label="Dispositivo Android"><option value="">Dispositivo configurado no servidor</option></select>
@@ -407,6 +412,13 @@
           return String(metric.value);
         }
 
+        function feedbackText(feedback, key) {
+          if (feedback.status === "demo_mode") return "Modo demo";
+          if (feedback.status === "unavailable") return "Indisponível";
+          if (feedback.status !== "connected" || feedback[key] === null) return "Não conectado";
+          return String(feedback[key]);
+        }
+
         async function refreshMetrics() {
           const data = await request("/api/admin/metrics");
           byId("metric-leads").textContent = metricText(data.leads);
@@ -414,8 +426,13 @@
           byId("metric-customers").textContent = metricText(data.customers);
           byId("metric-spend").textContent = metricText(data.spend);
           byId("metric-visits").textContent = metricText(data.visits);
+          byId("metric-chat-users").textContent = metricText(data.chat_users_7d);
+          byId("metric-feedback-total").textContent = feedbackText(data.evolution_feedback, "responses");
+          byId("metric-feedback-yes").textContent = feedbackText(data.evolution_feedback, "yes");
+          byId("metric-feedback-unsure").textContent = feedbackText(data.evolution_feedback, "not_sure");
+          byId("metric-feedback-no").textContent = feedbackText(data.evolution_feedback, "no");
           byId("metrics-note").textContent =
-            `Leads: ${data.leads.source || "sem fonte"} · Pedidos: ${data.orders.source || "sem fonte"} · Clientes, gastos e acessos ainda não têm conectores de dados.`;
+            `Atividade: ${data.chat_users_7d.source || "sem fonte"} · Pesquisa: ${data.evolution_feedback.source || "sem fonte"} · Leads: ${data.leads.source || "sem fonte"} · Pedidos: ${data.orders.source || "sem fonte"}. Usuários ativos são contas autenticadas com conversa concluída; não representam visitas.`;
         }
 
         async function refreshNexus() {
